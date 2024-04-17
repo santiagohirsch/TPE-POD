@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package admin;
+
+option java_package = "ar.edu.itba.pod.grpc.admin";
+option java_multiple_files = true;
+
+service AdminService {
+  rpc AddSector(Sector) returns (SectorResponse);
+  rpc AddCounters(CounterCount) returns (CounterResponse);
+  rpc AddBooking(stream Booking) returns (stream BookingResponse);
+}
+
+message Sector {
+  string name = 1;
+}
+
+message SectorResponse {
+  string name = 1;
+  bool success = 2;
+}
+
+message CounterCount {
+  string sector_name = 1;
+  int32 count = 2;
+}
+
+message CounterResponse {
+  string sector_name = 1;
+  int32 count = 2;
+  int32 lower_bound = 3;
+  int32 upper_bound = 4;
+}
+
+message Booking {
+  string booking_code = 1;
+  string flight_code = 2;
+  string airline = 3;
+}
+
+message BookingResponse {
+  string booking_code = 1;
+  string flight_code = 2;
+  string airline = 3;
+  bool success = 4;
+}
