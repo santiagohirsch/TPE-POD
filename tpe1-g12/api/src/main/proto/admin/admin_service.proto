@@ -17,7 +17,6 @@ message Sector {
 
 message SectorResponse {
   string name = 1;
-  bool success = 2;
 }
 
 message CounterCount {
@@ -42,5 +41,4 @@ message BookingResponse {
   string booking_code = 1;
   string flight_code = 2;
   string airline = 3;
-  bool success = 4;
 }
