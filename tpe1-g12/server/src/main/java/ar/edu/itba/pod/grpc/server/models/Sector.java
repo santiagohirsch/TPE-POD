@@ -3,7 +3,7 @@ package ar.edu.itba.pod.grpc.server.models;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Sector {
+public class Sector  {
     private final String name;
     private Map<Integer, Airline> counters;
 
@@ -25,4 +25,21 @@ public class Sector {
         this.counters = counters;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        if (obj.getClass() != this.getClass()) {
+            return false;
+        }
+
+        final Sector other = (Sector) obj;
+        if (this.name.equals(other.name)) {
+            return true;
+        }
+
+        return false;
+    }
 }
