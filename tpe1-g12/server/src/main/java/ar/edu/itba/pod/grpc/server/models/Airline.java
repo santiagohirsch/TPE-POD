@@ -1,4 +1,4 @@
-package ar.edu.itba.pod.grpc.models;
+package ar.edu.itba.pod.grpc.server.models;
 
 import java.util.List;
 

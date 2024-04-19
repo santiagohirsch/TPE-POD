@@ -1,4 +1,4 @@
-package ar.edu.itba.pod.grpc.models;
+package ar.edu.itba.pod.grpc.server.models;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ public class Airport {
         if (sectors.contains(sector)) {
             return false;
         } else {
-
+            return true;
         }
     }
 }
