@@ -10,6 +10,8 @@ service CounterService {
   rpc ListSectors(google.protobuf.Empty) returns (stream SectorInfo);
   rpc GetCounterInfo(CounterInfo) returns (stream CounterResponse);
   rpc AssignCounters(AssignCounterInfo) returns (AssignCounterResponse);
+  rpc FreeCounters(FreeCounterInfo) returns (FreeCounterResponse);
+  rpc CheckInCounters(CheckInInfo) returns (stream CheckInResponse);
 }
 
 message SectorInfo {
@@ -45,4 +47,28 @@ message AssignCounterResponse {
   AssignCounterInfo info = 1;
   Interval assigned_interval = 2;
   int32 pending_ahead = 3;
+}
+
+message FreeCounterInfo {
+  int32 from = 1;
+  string counter_name = 2;
+  string airline = 3;
+}
+
+message FreeCounterResponse {
+  string flight_codes = 1;
+  Interval freed_interval = 2;
+  string sector = 3;
+}
+
+message CheckInInfo {
+  int32 from = 1;
+  string counter_name = 2;
+  string airline = 3;
+}
+
+message CheckInResponse {
+  string checkin_code = 1;
+  string flight_code = 2;
+  int32 counter = 3;
 }
