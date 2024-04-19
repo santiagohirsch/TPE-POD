@@ -12,10 +12,15 @@ service CounterService {
   rpc AssignCounters(AssignCounterInfo) returns (AssignCounterResponse);
   rpc FreeCounters(FreeCounterInfo) returns (FreeCounterResponse);
   rpc CheckInCounters(CheckInInfo) returns (stream CheckInResponse);
+  rpc ListPendingAssignments(Sector) returns (stream PendingAssignment);
+}
+
+message Sector {
+  string name = 1;
 }
 
 message SectorInfo {
-  string name = 1;
+  Sector sector = 1;
   repeated Interval intervals = 2;
 }
 
@@ -37,7 +42,7 @@ message CounterResponse {
 }
 
 message AssignCounterInfo {
-  string sector_name = 1;
+  Sector sector = 1;
   string flight_codes = 2;
   string airline = 3;
   int32 count = 4;
@@ -58,7 +63,7 @@ message FreeCounterInfo {
 message FreeCounterResponse {
   string flight_codes = 1;
   Interval freed_interval = 2;
-  string sector = 3;
+  Sector sector = 3;
 }
 
 message CheckInInfo {
@@ -71,4 +76,10 @@ message CheckInResponse {
   string checkin_code = 1;
   string flight_code = 2;
   int32 counter = 3;
+}
+
+message PendingAssignment {
+  int32 counters = 1;
+  string airline = 2;
+  string flight_codes = 3;
 }
