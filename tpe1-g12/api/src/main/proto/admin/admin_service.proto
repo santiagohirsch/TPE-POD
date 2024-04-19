@@ -4,40 +4,31 @@ package admin;
 
 option java_package = "ar.edu.itba.pod.grpc.admin";
 option java_multiple_files = true;
+import "google/protobuf/wrappers.proto";
 
 service AdminService {
-  rpc AddSector(Sector) returns (SectorResponse);
+  rpc AddSector(SectorData) returns (google.protobuf.BoolValue);
   rpc AddCounters(CounterCount) returns (CounterResponse);
-  rpc AddBooking(stream Booking) returns (stream BookingResponse);
+  rpc AddBooking(stream Booking) returns (stream google.protobuf.BoolValue);
 }
 
-message Sector {
-  string name = 1;
-}
-
-message SectorResponse {
+message SectorData{
   string name = 1;
 }
 
 message CounterCount {
-  string sector_name = 1;
+  SectorData sector = 1;
   int32 count = 2;
 }
 
 message CounterResponse {
-  string sector_name = 1;
+  SectorData sector = 1;
   int32 count = 2;
   int32 lower_bound = 3;
   int32 upper_bound = 4;
 }
 
 message Booking {
-  string booking_code = 1;
-  string flight_code = 2;
-  string airline = 3;
-}
-
-message BookingResponse {
   string booking_code = 1;
   string flight_code = 2;
   string airline = 3;
