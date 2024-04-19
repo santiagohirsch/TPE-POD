@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package event;
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/empty.proto";
+
+option java_package = "ar.edu.itba.pod.grpc.event";
+option java_multiple_files = true;
+
+service EventService {
+  rpc Register(RegisterInfo) returns (google.protobuf.Empty);
+  rpc UnRegister(RegisterInfo) returns (google.protobuf.BoolValue);
+}
+
+message RegisterInfo {
+  string airline = 1;
+}
