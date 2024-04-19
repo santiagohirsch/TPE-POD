@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package passenger;
+
+option java_package = "ar.edu.itba.pod.grpc.passenger";
+option java_multiple_files = true;
+
+service PassengerService {
+  rpc FetchCounter(Booking) returns (CounterInfo);
+  rpc CheckIn(CheckInInfo) returns (CheckInResponse);
+  rpc Status(Booking) returns (StatusResponse);
+}
+
+// TODO - make utils.proto for common messages
+message Interval {
+  int32 lower_bound = 1;
+  int32 upper_bound = 2;
+}
+
+message Booking {
+  string booking_code = 1;
+}
+
+message CounterInfo {
+  string flight_code = 1;
+  string airline = 2;
+  Interval counters = 3;
+  string sector = 4;
+  int32 queue_len = 5;
+}
+
+message CheckInInfo {
+  Booking booking = 1;
+  string sector_name = 2;
+  int32 counter = 3;
+}
+
+message CheckInResponse {
+  Booking booking = 1;
+  CounterInfo counter_info = 2;
+}
+
+message StatusResponse {
+  int32 status = 1;
+  CheckInResponse checkin_response = 2;
+}
