@@ -13,4 +13,12 @@ public class Airport {
     public void setSectors(List<Sector> sectors) {
         this.sectors = sectors;
     }
+
+    public boolean addSector(Sector sector) {
+        if (sectors.contains(sector)) {
+            return false;
+        } else {
+
+        }
+    }
 }
