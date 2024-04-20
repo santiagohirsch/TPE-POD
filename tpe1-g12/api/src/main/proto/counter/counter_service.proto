@@ -7,7 +7,7 @@ option java_multiple_files = true;
 import "google/protobuf/empty.proto";
 
 service CounterService {
-  rpc ListSectors(google.protobuf.Empty) returns (stream SectorInfo);
+  rpc ListSectors(google.protobuf.Empty) returns (ListSectorsResponse);
   rpc GetCounterInfo(CounterInfo) returns (stream CounterResponse);
   rpc AssignCounters(AssignCounterInfo) returns (AssignCounterResponse);
   rpc FreeCounters(FreeCounterInfo) returns (FreeCounterResponse);
@@ -19,14 +19,18 @@ message SectorData {
   string name = 1;
 }
 
-message SectorInfo {
-  SectorData sector = 1;
-  repeated Interval intervals = 2;
-}
-
 message Interval {
   int32 lower_bound = 1;
   int32 upper_bound = 2;
+}
+
+message SectorInfo {
+  SectorData sector_name = 1;
+  repeated Interval intervals = 2;
+}
+
+message ListSectorsResponse {
+  repeated SectorInfo sector = 1;
 }
 
 message CounterInfo {

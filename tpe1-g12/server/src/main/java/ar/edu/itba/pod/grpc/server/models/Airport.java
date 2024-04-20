@@ -77,4 +77,35 @@ public class Airport {
         }
         return true;
     }
+
+    public Optional<Map<String, List<Pair<Integer, Integer>>>> listSectors() {
+        if (this.sectors.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Map<String, List<Pair<Integer, Integer>>> countersPerSectors = new HashMap<>();
+
+        for (Sector sector : this.sectors) {
+            countersPerSectors.put(sector.getName(), new ArrayList<>());
+            int start = -1;
+            int end = -1;
+            for (Integer counter : sector.getCounters().keySet()) {
+                if (start == -1) {
+                    start = counter;
+                    end = counter;
+                } else if (counter == end + 1) {
+                    end = counter;
+                } else {
+                    countersPerSectors.get(sector.getName()).add(new Pair<>(start, end));
+                    start = counter;
+                    end = counter;
+                }
+            }
+            // Add the last pair if there's any remaining counter
+            if (start != -1) {
+                countersPerSectors.get(sector.getName()).add(new Pair<>(start, end));
+            }
+        }
+        return Optional.of(countersPerSectors);
+    }
 }
