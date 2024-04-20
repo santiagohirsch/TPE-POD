@@ -1,5 +1,6 @@
 package ar.edu.itba.pod.grpc.server.models;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class Airline {
@@ -8,6 +9,7 @@ public class Airline {
 
     public Airline(String name) {
         this.name = name;
+        this.flights = new ArrayList<>();
     }
 
     public String getName() {
