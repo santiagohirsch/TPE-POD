@@ -9,6 +9,8 @@ import io.grpc.Status;
 import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 
+import java.io.IOException;
+import java.io.Reader;
 import java.util.Optional;
 
 public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
@@ -50,7 +52,9 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
     }
 
     @Override
-    public StreamObserver<Booking> addBooking(StreamObserver<BoolValue> responseObserver) {
-        return super.addBooking(responseObserver);
+    public void addBooking(Booking request, StreamObserver<BoolValue> responseObserver) {
+        boolean response = this.airport.addBooking(request.getBookingCode(), request.getFlightCode(), request.getAirline());
+        responseObserver.onNext(BoolValue.of(response));
+        responseObserver.onCompleted();
     }
 }
