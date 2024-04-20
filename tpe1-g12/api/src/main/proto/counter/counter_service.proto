@@ -43,7 +43,7 @@ message CounterResponse {
 
 message AssignCounterInfo {
   SectorData sector = 1;
-  string flight_codes = 2;
+  repeated string flight_codes = 2;
   string airline = 3;
   int32 count = 4;
 }
@@ -61,7 +61,7 @@ message FreeCounterInfo {
 }
 
 message FreeCounterResponse {
-  string flight_codes = 1;
+  repeated string flight_codes = 1;
   Interval freed_interval = 2;
   SectorData sector = 3;
 }
@@ -81,5 +81,5 @@ message CheckInResponse {
 message PendingAssignment {
   int32 counters = 1;
   string airline = 2;
-  string flight_codes = 3;
+  repeated string flight_codes = 3;
 }
