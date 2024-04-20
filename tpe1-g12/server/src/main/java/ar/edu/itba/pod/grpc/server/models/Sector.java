@@ -1,11 +1,15 @@
 package ar.edu.itba.pod.grpc.server.models;
 
-import java.util.HashMap;
-import java.util.Map;
+
+
+import ar.edu.itba.pod.grpc.admin.Interval;
+import ar.edu.itba.pod.grpc.server.utils.Pair;
+
+import java.util.*;
 
 public class Sector  {
     private final String name;
-    private Map<Integer, Airline> counters;
+    private Map<Integer, Optional<Airline>> counters;
 
 
     public Sector(String name) {
@@ -17,12 +21,38 @@ public class Sector  {
         return name;
     }
 
-    public Map<Integer, Airline> getCounters() {
+    public Map<Integer, Optional<Airline>> getCounters() {
         return counters;
     }
 
-    public void setCounters(Map<Integer, Airline> counters) {
+    public void setCounters(Map<Integer, Optional<Airline>> counters) {
         this.counters = counters;
+    }
+
+    public Pair<Integer, Integer> addCounters(int cant) throws IllegalArgumentException {
+        if (cant < 0) {
+            throw new IllegalArgumentException("The amount of counters can't be negative");
+        }
+        int start = -1;
+        int end = -1;
+
+        for (int i = 0; cant >= 0; i++) {
+            if (!counters.containsKey(i)) {
+                if (start == -1) {
+                    start = i;
+                }
+                counters.put(i, Optional.empty());
+                cant--;
+                if (cant == 0) {
+                    end = i;
+                    break;
+                }
+            } else if (start != -1) {
+                start = -1;
+            }
+        }
+
+        return new Pair<>(start, end);
     }
 
     @Override
@@ -36,10 +66,6 @@ public class Sector  {
         }
 
         final Sector other = (Sector) obj;
-        if (this.name.equals(other.name)) {
-            return true;
-        }
-
-        return false;
+        return this.name.equals(other.name);
     }
 }

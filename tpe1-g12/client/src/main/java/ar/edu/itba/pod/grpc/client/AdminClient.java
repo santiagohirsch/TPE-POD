@@ -1,6 +1,8 @@
 package ar.edu.itba.pod.grpc.client;
 
 import ar.edu.itba.pod.grpc.admin.AdminServiceGrpc;
+import ar.edu.itba.pod.grpc.admin.CounterCount;
+import ar.edu.itba.pod.grpc.admin.CounterResponse;
 import ar.edu.itba.pod.grpc.admin.SectorData;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -35,12 +37,18 @@ public class AdminClient {
             ListenableFuture<BoolValue> response = stub.addSector(request);
 
             ExecutorService executor = Executors.newCachedThreadPool();
-            Futures.addCallback(response, new FutureCallback<BoolValue>(
+            Futures.addCallback(response, new FutureCallback<>(
 
             ) {
                 @Override
                 public void onSuccess(BoolValue boolValue) {
-                    String out = "Sector " + request.getName() + " added successfully";
+                    String out;
+                    if(!boolValue.getValue()){
+                        out = "Sector " + request.getName() + " already exists";
+                    }else{
+                        out = "Sector " + request.getName() + " added successfully";
+                    }
+
                     System.out.println(out);
                     latch.countDown();
                 }
@@ -51,6 +59,29 @@ public class AdminClient {
                     latch.countDown();
                 }
             }, executor);
+
+            CounterCount counterRequest = CounterCount.newBuilder()
+                    .setSector(SectorData.newBuilder().setName("A").build())
+                    .setCount(3).build();
+            ListenableFuture<CounterResponse> counterResponse = stub.addCounters(counterRequest);
+
+            ExecutorService counterExecutor = Executors.newCachedThreadPool();
+            Futures.addCallback(counterResponse, new FutureCallback<>(
+
+            ) {
+                @Override
+                public void onSuccess(CounterResponse resp) {
+                    String out = resp.getCount() + " new counters (" + resp.getInterval().getLowerBound() + "-" + resp.getInterval().getUpperBound() + ") in Sector " + resp.getSector().getName() + " added successfully";
+                    System.out.println(out);
+                    latch.countDown();
+                }
+
+                @Override
+                public void onFailure(Throwable throwable) {
+                    System.out.println("fallo");
+                    latch.countDown();
+                }
+            }, counterExecutor);
 
         } finally {
             channel.shutdown().awaitTermination(10, TimeUnit.SECONDS);

@@ -1,8 +1,11 @@
 package ar.edu.itba.pod.grpc.server.models;
 
+import ar.edu.itba.pod.grpc.server.utils.Pair;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 public class Airport {
     private List<Sector> sectors;
@@ -20,13 +23,20 @@ public class Airport {
     }
 
     public boolean addSector(Sector sector) {
-        System.out.println(sectors);
-        System.out.println(sectors.size());
-        if (/*sectors.contains(sector)*/ sectors.contains(sector) ) {
+        if (sectors.contains(sector) ) {
             return false;
         } else {
             sectors.add(sector);
             return true;
         }
+    }
+
+    public Optional<Pair<Integer,Integer>> addCounters(Sector sector, int cant){
+        for (Sector s : sectors) {
+            if (s.equals(sector)) {
+                return Optional.of(s.addCounters(cant));
+            }
+        }
+        return Optional.empty();
     }
 }
