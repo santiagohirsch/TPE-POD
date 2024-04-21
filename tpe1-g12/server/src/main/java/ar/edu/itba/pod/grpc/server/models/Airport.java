@@ -1,7 +1,9 @@
 package ar.edu.itba.pod.grpc.server.models;
 
+import ar.edu.itba.pod.grpc.event.RegisterInfo;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 import com.google.protobuf.BoolValue;
+import com.google.protobuf.Empty;
 
 import java.util.*;
 
@@ -107,5 +109,25 @@ public class Airport {
             }
         }
         return Optional.of(countersPerSectors);
+    }
+
+    public Empty register(RegisterInfo registerInfo) {
+        int index = airlines.indexOf(new Airline(registerInfo.getAirline()));
+        if(index >= 0) {
+            Airline airline = airlines.get(index);
+            airline.setNotificated(true);
+        }
+        return Empty.newBuilder().build();
+    }
+
+    public boolean unRegister(RegisterInfo registerInfo) {
+        int index = airlines.indexOf(new Airline(registerInfo.getAirline()));
+        if(index >= 0) {
+            Airline airline = airlines.get(index);
+            airline.setNotificated(false);
+            return true;
+        }
+
+        return false;
     }
 }
