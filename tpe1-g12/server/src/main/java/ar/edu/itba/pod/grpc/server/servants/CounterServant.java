@@ -1,0 +1,73 @@
+package ar.edu.itba.pod.grpc.server.servants;
+
+import ar.edu.itba.pod.grpc.counter.*;
+import ar.edu.itba.pod.grpc.server.models.Airport;
+import ar.edu.itba.pod.grpc.server.utils.Pair;
+import com.google.protobuf.Empty;
+import io.grpc.stub.StreamObserver;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
+    private Airport airport;
+
+    public CounterServant(Airport airport) {
+        this.airport = airport;
+    }
+
+    @Override
+    public void listSectors(Empty request, StreamObserver<ListSectorsResponse> responseObserver) {
+        Optional<Map<String, List<Pair<Integer,Integer>>>> response = this.airport.listSectors();
+        response.ifPresentOrElse(
+                sectorDataMap -> {
+                    ListSectorsResponse.Builder builder = ListSectorsResponse.newBuilder();
+                    sectorDataMap.forEach((sectorName, pairs) -> {
+                        SectorInfo.Builder sectorInfoBuilder = SectorInfo.newBuilder();
+                        SectorData sectorData = SectorData.newBuilder().setName(sectorName).build();
+                        sectorInfoBuilder.setSectorName(sectorData);
+                        pairs.forEach(pair -> {
+                            Interval.Builder intervalBuilder = Interval.newBuilder()
+                                    .setLowerBound(pair.getLeft())
+                                    .setUpperBound(pair.getRight());
+                            sectorInfoBuilder.addIntervals(intervalBuilder);
+                        });
+                        builder.addSector(sectorInfoBuilder);
+                    });
+                    responseObserver.onNext(builder.build());
+                    responseObserver.onCompleted();
+                },
+                () -> {
+                    responseObserver.onNext(ListSectorsResponse.newBuilder().build());
+                    responseObserver.onCompleted();
+                }
+        );
+    }
+
+
+    @Override
+    public void getCounterInfo(CounterInfo request, StreamObserver<CounterResponse> responseObserver) {
+        super.getCounterInfo(request, responseObserver);
+    }
+
+    @Override
+    public void assignCounters(AssignCounterInfo request, StreamObserver<AssignCounterResponse> responseObserver) {
+        super.assignCounters(request, responseObserver);
+    }
+
+    @Override
+    public void freeCounters(FreeCounterInfo request, StreamObserver<FreeCounterResponse> responseObserver) {
+        super.freeCounters(request, responseObserver);
+    }
+
+    @Override
+    public void checkInCounters(CheckInInfo request, StreamObserver<CheckInResponse> responseObserver) {
+        super.checkInCounters(request, responseObserver);
+    }
+
+    @Override
+    public void listPendingAssignments(SectorData request, StreamObserver<PendingAssignment> responseObserver) {
+        super.listPendingAssignments(request, responseObserver);
+    }
+}
