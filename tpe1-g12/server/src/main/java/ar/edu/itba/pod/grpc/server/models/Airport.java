@@ -8,6 +8,7 @@ import java.util.*;
 public class Airport {
     private List<Sector> sectors;
     private List<Airline> airlines;
+    private static int nextAvailableCounter = 1;
 
     public Airport() {
         this.sectors = new ArrayList<>();
@@ -38,7 +39,9 @@ public class Airport {
     public Optional<Pair<Integer,Integer>> addCounters(Sector sector, int cant){
         for (Sector s : sectors) {
             if (s.equals(sector)) {
-                return Optional.of(s.addCounters(cant));
+                Optional<Pair<Integer,Integer>> toReturn = Optional.of(s.addCounters(cant, nextAvailableCounter));
+                nextAvailableCounter = toReturn.get().getRight() + 1;
+                return toReturn;
             }
         }
         return Optional.empty();

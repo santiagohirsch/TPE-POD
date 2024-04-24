@@ -29,7 +29,7 @@ public class Sector  {
         this.counters = counters;
     }
 
-    public Pair<Integer, Integer> addCounters(int cant) throws IllegalArgumentException {
+    public Pair<Integer, Integer> addCounters(int cant, int nextAvailableCounter) throws IllegalArgumentException {
         if (cant < 0) {
             throw new IllegalArgumentException("The amount of counters can't be negative");
         }
@@ -37,14 +37,14 @@ public class Sector  {
         int end = -1;
 
         for (int i = 0; cant >= 0; i++) {
-            if (!counters.containsKey(i)) {
+            if (!counters.containsKey(i + nextAvailableCounter)) {
                 if (start == -1) {
-                    start = i;
+                    start = i + nextAvailableCounter;
                 }
-                counters.put(i, Optional.empty());
+                counters.put(i + nextAvailableCounter, Optional.empty());
                 cant--;
                 if (cant == 0) {
-                    end = i;
+                    end = i + nextAvailableCounter;
                     break;
                 }
             } else if (start != -1) {
