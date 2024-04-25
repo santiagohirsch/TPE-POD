@@ -8,7 +8,7 @@ import "google/protobuf/empty.proto";
 
 service CounterService {
   rpc ListSectors(google.protobuf.Empty) returns (ListSectorsResponse);
-  rpc GetCounterInfo(CounterInfo) returns (stream CounterResponse);
+  rpc GetCounterInfo(CounterInfo) returns (CounterResponse);
   rpc AssignCounters(AssignCounterInfo) returns (AssignCounterResponse);
   rpc FreeCounters(FreeCounterInfo) returns (FreeCounterResponse);
   rpc CheckInCounters(CheckInInfo) returns (stream CheckInResponse);
@@ -43,6 +43,10 @@ message CounterResponse {
   string airline = 2;
   repeated string flight_code = 3;
   int32 passengers = 4;
+}
+
+message CounterInfoResponse {
+  repeated CounterResponse counters = 1;
 }
 
 message AssignCounterInfo {
