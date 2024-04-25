@@ -55,6 +55,45 @@ public class Sector  {
         return new Pair<>(start, end);
     }
 
+    public Pair<Integer, Integer> assignCounters(Airline airline, int count) {
+        int start = -1;
+        int end = -1;
+        int currentCount = 0;
+
+        for (Map.Entry<Integer, Optional<Airline>> entry : counters.entrySet()) {
+            if (entry.getValue().isEmpty()) {
+                // Counter is available
+                if (start == -1) {
+                    // Start of a potential block of counters
+                    start = entry.getKey();
+                }
+                currentCount++;
+
+                if (currentCount == count) {
+                    // Found a block of 'count' consecutive counters
+                    end = entry.getKey();
+                    break;
+                }
+            } else {
+                // Counter is not available, reset currentCount and start
+                start = -1;
+                currentCount = 0;
+            }
+        }
+
+        if (end == -1) {
+            // Unable to find a contiguous block of counters
+            return new Pair<>(0, 0);
+        } else {
+            // Mark the assigned counters for the airline
+            for (int i = start; i <= end; i++) {
+                counters.put(i, Optional.of(airline));
+            }
+            return new Pair<>(start, end);
+        }
+    }
+
+
     @Override
     public boolean equals(Object obj) {
         if (obj == null) {

@@ -4,6 +4,7 @@ import ar.edu.itba.pod.grpc.server.utils.Pair;
 import com.google.protobuf.BoolValue;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class Airport {
     private List<Sector> sectors;
@@ -110,5 +111,51 @@ public class Airport {
             }
         }
         return Optional.of(countersPerSectors);
+    }
+
+    public Pair<Integer, Integer> assignCounters(String sector, List<String> flightCodes, String airline, int count) {
+        // (-1,-1) = error | (0, 0) = pending
+        Sector targetSector = null;
+        for (Sector s : this.sectors) {
+            if (s.getName().equals(sector)) {
+                targetSector = s;
+                break;
+            }
+        }
+        if (targetSector == null) {
+            return new Pair<>(-1, -1);
+        }
+
+        Airline targetAirline = null;
+
+        for (Airline a : this.airlines) {
+            for (Flight flight : a.getFlights()) {
+                if (flightCodes.contains(flight.getFlightCode())) {
+                    if (flight.getBookings().isEmpty()) {
+                        return new Pair<>(-1, -1);
+                    } else if (!a.getName().equals(airline)) {
+                        return new Pair<>(-1, -1);
+                    }
+                }
+            }
+            if (a.getName().equals(airline)) {
+                if (flightCodes.containsAll(a.getFlights().stream().map(Flight::getFlightCode).toList())) {
+                    targetAirline = a;
+                }
+            }
+        }
+
+        if (targetAirline == null) {
+            return new Pair<>(-1, -1);
+        }
+
+        // TODO: check pending (add a queue of Assignments -> objects that contain all the info of a pending assignment)
+        // TODO: check that none of the flights have been assigned before (change the counters Map in Sector from Airline to Assignment)
+        Pair<Integer, Integer> assignedInterval = targetSector.assignCounters(targetAirline, count);
+        if (assignedInterval.getLeft() == 0) {
+            //TODO: add to pending
+        }
+
+        return assignedInterval;
     }
 }
