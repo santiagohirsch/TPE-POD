@@ -57,16 +57,17 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
         List<String> flightCodes = request.getFlightCodesList().stream().toList();
         String airline = request.getAirline();
         int count = request.getCount();
+        int pendingAhead = 0;
         Pair<Integer, Integer> assignedInterval = this.airport.assignCounters(sector, flightCodes, airline, count);
         if (assignedInterval.getLeft() == 0) {
-            // TODO: getPending -> returns how many assignments are in front of this one -> use this value for the response
+            pendingAhead = this.airport.getPendingAhead(sector, flightCodes, airline, count);
         }
         AssignCounterResponse response = AssignCounterResponse.newBuilder()
                 .setAssignedInterval(
                         Interval.newBuilder()
                         .setLowerBound(assignedInterval.getLeft())
                                 .setUpperBound(assignedInterval.getRight()))
-                .setPendingAhead(0)
+                .setPendingAhead(pendingAhead)
                 .setInfo(request)
                 .build();
         responseObserver.onNext(response);

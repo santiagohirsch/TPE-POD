@@ -1,10 +1,8 @@
 package ar.edu.itba.pod.grpc.server.models;
 
 import ar.edu.itba.pod.grpc.server.utils.Pair;
-import com.google.protobuf.BoolValue;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class Airport {
     private List<Sector> sectors;
@@ -93,7 +91,7 @@ public class Airport {
             countersPerSectors.put(sector.getName(), new ArrayList<>());
             int start = -1;
             int end = -1;
-            for (Integer counter : sector.getCounters().keySet()) {
+            for (Integer counter : sector.getAssignedCounters().keySet()) {
                 if (start == -1) {
                     start = counter;
                     end = counter;
@@ -126,21 +124,21 @@ public class Airport {
             return new Pair<>(-1, -1);
         }
 
-        Airline targetAirline = null;
+        String targetAirline = null;
 
         for (Airline a : this.airlines) {
             for (Flight flight : a.getFlights()) {
                 if (flightCodes.contains(flight.getFlightCode())) {
-                    if (flight.getBookings().isEmpty()) {
+                    if (!a.getName().equals(airline)) {
                         return new Pair<>(-1, -1);
-                    } else if (!a.getName().equals(airline)) {
+                    } else if (flight.getBookings().isEmpty()) {
                         return new Pair<>(-1, -1);
                     }
                 }
             }
             if (a.getName().equals(airline)) {
-                if (flightCodes.containsAll(a.getFlights().stream().map(Flight::getFlightCode).toList())) {
-                    targetAirline = a;
+                if (a.getFlights().stream().map(Flight::getFlightCode).toList().containsAll(flightCodes)) {
+                    targetAirline = airline;
                 }
             }
         }
@@ -149,13 +147,10 @@ public class Airport {
             return new Pair<>(-1, -1);
         }
 
-        // TODO: check pending (add a queue of Assignments -> objects that contain all the info of a pending assignment)
-        // TODO: check that none of the flights have been assigned before (change the counters Map in Sector from Airline to Assignment)
-        Pair<Integer, Integer> assignedInterval = targetSector.assignCounters(targetAirline, count);
-        if (assignedInterval.getLeft() == 0) {
-            //TODO: add to pending
-        }
+        return targetSector.assignCounters(targetAirline, flightCodes, count);
+    }
 
-        return assignedInterval;
+    public int getPendingAhead(String sector, List<String> flightCodes, String airline, int count) {
+        return this.sectors.get(this.sectors.indexOf(new Sector(sector))).getPendingAhead(new Assignment(airline, flightCodes, count));
     }
 }
