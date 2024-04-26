@@ -95,8 +95,11 @@ public class Sector  {
                     // Start of a potential block of counters
                     start = entry.getKey();
                 }
+                if(entry.getKey() != start+currentCount){
+                    start=entry.getKey();
+                    currentCount=0;
+                }
                 currentCount++;
-
                 if (currentCount == count) {
                     // Found a block of 'count' consecutive counters
                     end = entry.getKey();
@@ -153,17 +156,30 @@ public class Sector  {
         return this.name.equals(other.name);
     }
 
-    public Optional<Pair<Integer,List<String>>> freeCounters(int from, String airline) {
-        boolean verifiedCounter = assignedCounters.get(from).isPresent() && assignedCounters.get(from).get().getAirline().equals(airline);
-        int i = 0;
-        List<String> flights = assignedCounters.get(from).get().getFlightCodes();
-        while(verifiedCounter) {
-            finishedAssignments.add(assignedCounters.get(from + i).get()); //todo ver si sirve dsp
-            assignedCounters.remove(from + i);
-            i++;
-            verifiedCounter =  assignedCounters.get(from + i).isPresent() &&  assignedCounters.get(from + i).get().getAirline().equals(airline);
+    public Optional<Assignment> freeCounters(int from, String airline) {
+        int toRemove = -1;
+        Optional<Assignment> toReturn = Optional.empty();
+
+        if (assignedCounters.containsKey(from) &&
+                assignedCounters.get(from).isPresent() &&
+                assignedCounters.get(from).get().getAirline().equals(airline)) {
+            if (!assignedCounters.containsKey(from - 1) ||
+                    assignedCounters.get(from - 1).isEmpty() ||
+                    !assignedCounters.get(from - 1).get().equals(assignedCounters.get(from).get())) {
+                toRemove = from;
+                toReturn = assignedCounters.get(from);
+            }
+        } else {
+            return toReturn;
         }
-        return Optional.of(new Pair<>(i,flights));
+
+        while (assignedCounters.containsKey(toRemove) && assignedCounters.get(toRemove).isPresent() && assignedCounters.get(toRemove).get().equals(toReturn.get())){
+
+            assignedCounters.replace(toRemove, Optional.empty());
+            toRemove += 1;
+        }
+
+        return toReturn;
     }
 
     public Optional<Queue<Assignment>> listPendingAssignments() {

@@ -154,10 +154,10 @@ public class Airport {
         return this.sectors.get(this.sectors.indexOf(new Sector(sector))).getPendingAhead(new Assignment(airline, flightCodes, count));
     }
 
-    public Optional<Pair<Integer,List<String>>>  freeCounters(String sector, int from, String airline) {
+    public Optional<Assignment>  freeCounters(String sector, int from, String airline) {
         Sector targetSector = getSectorByName(sector);
         if(targetSector == null) {
-            return Optional.of(new Pair<>(-1,Collections.emptyList())); //todo checkear
+            return Optional.empty(); //todo checkear
         }
 
         return targetSector.freeCounters(from,airline);

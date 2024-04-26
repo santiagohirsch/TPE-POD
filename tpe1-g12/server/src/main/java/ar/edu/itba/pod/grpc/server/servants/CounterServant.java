@@ -78,17 +78,17 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
         String sector = request.getCounterName();
         int from = request.getFrom();
         String airline = request.getAirline();
-        Optional<Pair<Integer,List<String>>> freedCounters = this.airport.freeCounters(sector,from,airline); //todo cambiar
+        Optional<Assignment> freedCounters = this.airport.freeCounters(sector,from,airline); //todo cambiar
 
         if (freedCounters.isPresent()) {
             FreeCounterResponse freeCounterResponse = FreeCounterResponse.newBuilder()
-                    .addAllFlightCodes(freedCounters.get().getRight())
+                    .addAllFlightCodes(freedCounters.get().getFlightCodes())
                     .setSector(SectorData.newBuilder()
                             .setName(request.getCounterName())
                             .build())
                     .setFreedInterval(Interval.newBuilder()
                             .setLowerBound(request.getFrom())
-                            .setUpperBound(request.getFrom() + freedCounters.get().getLeft())
+                            .setUpperBound(request.getFrom() + freedCounters.get().getCant() - 1)
                             .build())
                     .build();
             responseObserver.onNext(freeCounterResponse);
