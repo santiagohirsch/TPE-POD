@@ -69,7 +69,6 @@ public class CounterClient {
                 latch.countDown();
             }
         }, sectorsExecutor);
-
         //2.3
         List<String> flightCodes = new ArrayList<>();
         flightCodes.add("AA123");
@@ -133,6 +132,93 @@ public class CounterClient {
                 latch.countDown();
             }
         }, assignCounterExecutor);
+
+        //2.4
+
+        FreeCounterInfo freeCounterInfo = FreeCounterInfo.newBuilder().setFrom(1).setCounterName("A").setAirline("AmericanAirlines").build();
+        ListenableFuture<FreeCounterResponse> freeCountersResponse = stub.freeCounters(freeCounterInfo);
+        ExecutorService freeCountersExecutor = Executors.newCachedThreadPool();
+
+        Futures.addCallback(freeCountersResponse, new FutureCallback<>() {
+            @Override
+            public void onSuccess(FreeCounterResponse freeCounterResponse) {
+                StringBuilder sb = new StringBuilder();
+                if (freeCounterResponse.getFreedInterval().getLowerBound() != -1) {
+                    sb.append("Ended check-in for flights ");
+                    for (String flight : freeCounterResponse.getFlightCodesList()) {
+                        sb.append(flight);
+                        sb.append("|");
+                    }
+                    sb.deleteCharAt(sb.lastIndexOf("|"));
+                    sb.append(" on ");
+                    sb.append(freeCounterResponse.getFreedInterval().getUpperBound() - freeCounterResponse.getFreedInterval().getLowerBound() + 1);
+                    sb.append(" counters ");
+                    sb.append("(");
+                    sb.append(freeCounterResponse.getFreedInterval().getLowerBound());
+                    sb.append("-");
+                    sb.append(freeCounterResponse.getFreedInterval().getUpperBound());
+                    sb.append(") ");
+                    sb.append("in Sector ");
+                    sb.append(freeCounterResponse.getSector());
+                    System.out.println(sb);
+                    latch.countDown();
+                }
+                else {
+                    sb.append("Error");
+                    System.out.println(sb);
+                    latch.countDown();
+                }
+            }
+
+            @Override
+            public void onFailure(Throwable throwable){
+                System.out.println("Fallo mal");
+                latch.countDown();
+            }
+        },freeCountersExecutor);
+
+        //2.6
+        SectorData sectorData = SectorData.newBuilder().setName("A").build();
+        ListenableFuture<ListPendingAssignmentResponse> pendingAssignmentResponse = stub.listPendingAssignments(sectorData);
+        ExecutorService pendingAssignmentsExecutor = Executors.newCachedThreadPool();
+
+        Futures.addCallback(pendingAssignmentResponse, new FutureCallback<>() {
+            @Override
+            public void onSuccess(ListPendingAssignmentResponse pendingAssignments) {
+                StringBuilder sb = new StringBuilder();
+                if( !pendingAssignments.getPendingsList().isEmpty() && pendingAssignments.getPendingsList().get(0).getCounters() >= 0) {
+                    sb.append("Counters\tAirline\t\tFlights\n");
+                    sb.append("##########################################################\n");
+                    for (PendingAssignment pendingAssignment : pendingAssignments.getPendingsList()) {
+                        sb.append(pendingAssignment.getCounters());
+                        sb.append("\t");
+                        sb.append(pendingAssignment.getAirline());
+                        sb.append("\t");
+                        for (String flight : pendingAssignment.getFlightCodesList()) {
+                            sb.append(flight);
+                            sb.append("|");
+                        }
+                        sb.deleteCharAt(sb.lastIndexOf("|"));
+                        sb.append("\n");
+                    }
+                }
+                else if (pendingAssignments.getPendingsList().isEmpty()) {
+                    sb.append("No pending assignments ");
+                }
+                else {
+                    sb.append("Sector inexistente"); //todo cambiar (?
+                }
+                System.out.println(sb);
+                latch.countDown();
+            }
+
+            @Override
+            public void onFailure(Throwable throwable){
+                System.out.println("Fallo mal");
+                latch.countDown();
+            }
+        },pendingAssignmentsExecutor);
+
         try {
             logger.info("Waiting for response...");
             latch.await();

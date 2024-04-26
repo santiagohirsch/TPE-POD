@@ -153,4 +153,32 @@ public class Airport {
     public int getPendingAhead(String sector, List<String> flightCodes, String airline, int count) {
         return this.sectors.get(this.sectors.indexOf(new Sector(sector))).getPendingAhead(new Assignment(airline, flightCodes, count));
     }
+
+    public Optional<Pair<Integer,List<String>>>  freeCounters(String sector, int from, String airline) {
+        Sector targetSector = getSectorByName(sector);
+        if(targetSector == null) {
+            return Optional.of(new Pair<>(-1,Collections.emptyList())); //todo checkear
+        }
+
+        return targetSector.freeCounters(from,airline);
+    }
+
+    public Optional<Queue<Assignment>> listPendingAssignments(String sectorName) {
+        Sector targetSector = getSectorByName(sectorName);
+        if(targetSector == null) {
+            return Optional.empty(); //todo deberia fallar!
+        }
+        return targetSector.listPendingAssignments();
+    }
+
+     private Sector getSectorByName(String sectorName) {
+        Sector targetSector = null;
+        for (Sector s : this.sectors) {
+            if (s.getName().equals(sectorName)) {
+                targetSector = s;
+                break;
+            }
+        }
+        return targetSector;
+    }
 }

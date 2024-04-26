@@ -2,13 +2,12 @@ package ar.edu.itba.pod.grpc.server.servants;
 
 import ar.edu.itba.pod.grpc.counter.*;
 import ar.edu.itba.pod.grpc.server.models.Airport;
+import ar.edu.itba.pod.grpc.server.models.Assignment;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
     private Airport airport;
@@ -76,16 +75,48 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
 
     @Override
     public void freeCounters(FreeCounterInfo request, StreamObserver<FreeCounterResponse> responseObserver) {
-        super.freeCounters(request, responseObserver);
+        String sector = request.getCounterName();
+        int from = request.getFrom();
+        String airline = request.getAirline();
+        Optional<Pair<Integer,List<String>>> freedCounters = this.airport.freeCounters(sector,from,airline); //todo cambiar
+
+        if (freedCounters.isPresent()) {
+            FreeCounterResponse freeCounterResponse = FreeCounterResponse.newBuilder()
+                    .addAllFlightCodes(freedCounters.get().getRight())
+                    .setSector(SectorData.newBuilder()
+                            .setName(request.getCounterName())
+                            .build())
+                    .setFreedInterval(Interval.newBuilder()
+                            .setLowerBound(request.getFrom())
+                            .setUpperBound(request.getFrom() + freedCounters.get().getLeft())
+                            .build())
+                    .build();
+            responseObserver.onNext(freeCounterResponse);
+            responseObserver.onCompleted();
+        }
     }
 
     @Override
-    public void checkInCounters(CheckInInfo request, StreamObserver<CheckInResponse> responseObserver) {
+    public void checkInCounters(CheckInInfo request, StreamObserver<ListCheckInResponse> responseObserver) {
         super.checkInCounters(request, responseObserver);
     }
 
     @Override
-    public void listPendingAssignments(SectorData request, StreamObserver<PendingAssignment> responseObserver) {
-        super.listPendingAssignments(request, responseObserver);
+    public void listPendingAssignments(SectorData request, StreamObserver<ListPendingAssignmentResponse> responseObserver) {
+        Optional<Queue<Assignment>> pendingAssignments = this.airport.listPendingAssignments(request.getName());
+        List<PendingAssignment> pendingAssignmentsResponse = new LinkedList<>();
+        if(pendingAssignments.isPresent()) {
+            for (Assignment assignment: pendingAssignments.get()) {
+                List<String> flightCodes = new LinkedList<>(assignment.getFlightCodes());
+                pendingAssignmentsResponse.add(PendingAssignment.newBuilder().setCounters(assignment.getCant()).setAirline(assignment.getAirline()).addAllFlightCodes(flightCodes).build());
+            }
+            ListPendingAssignmentResponse listPendingAssignmentResponse = ListPendingAssignmentResponse.newBuilder().addAllPendings(pendingAssignmentsResponse)
+                    .build();
+            responseObserver.onNext(listPendingAssignmentResponse);
+            responseObserver.onCompleted();
+        }
+        else {
+            responseObserver.onNext(ListPendingAssignmentResponse.newBuilder().setPendings(0, PendingAssignment.newBuilder().setCounters(-1).build()).build());
+        }
     }
 }

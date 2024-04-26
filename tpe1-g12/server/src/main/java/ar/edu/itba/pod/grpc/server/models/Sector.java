@@ -11,11 +11,14 @@ public class Sector  {
     private Map<Integer, Optional<Assignment>> assignedCounters;
     private Queue<Assignment> pendingAssignments;
 
+    private Queue<Assignment> finishedAssignments;
+
 
     public Sector(String name) {
         this.name = name;
         this.assignedCounters = new HashMap<>();
         this.pendingAssignments = new LinkedList<>();
+        this.finishedAssignments = new LinkedList<>();
     }
 
     public String getName() {
@@ -148,5 +151,22 @@ public class Sector  {
 
         final Sector other = (Sector) obj;
         return this.name.equals(other.name);
+    }
+
+    public Optional<Pair<Integer,List<String>>> freeCounters(int from, String airline) {
+        boolean verifiedCounter = assignedCounters.get(from).isPresent() && assignedCounters.get(from).get().getAirline().equals(airline);
+        int i = 0;
+        List<String> flights = assignedCounters.get(from).get().getFlightCodes();
+        while(verifiedCounter) {
+            finishedAssignments.add(assignedCounters.get(from + i).get()); //todo ver si sirve dsp
+            assignedCounters.remove(from + i);
+            i++;
+            verifiedCounter =  assignedCounters.get(from + i).isPresent() &&  assignedCounters.get(from + i).get().getAirline().equals(airline);
+        }
+        return Optional.of(new Pair<>(i,flights));
+    }
+
+    public Optional<Queue<Assignment>> listPendingAssignments() {
+        return Optional.of(pendingAssignments);
     }
 }
