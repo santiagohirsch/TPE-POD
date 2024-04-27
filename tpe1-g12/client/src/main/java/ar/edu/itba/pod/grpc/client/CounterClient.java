@@ -71,29 +71,36 @@ public class CounterClient {
         }, sectorsExecutor);
 
         //2.2
-        ListenableFuture<CounterInfoResponse> counterInfoResponse = stub.getCounterInfo(CounterInfo.newBuilder().setName("A").setInterval(Interval.newBuilder().setLowerBound(5).setUpperBound(7).build()).build());
+        ListenableFuture<CounterInfoResponse> counterInfoResponse = stub.getCounterInfo(CounterInfo.newBuilder().setName("A").setInterval(Interval.newBuilder().setLowerBound(1).setUpperBound(2).build()).build());
         ExecutorService counterInfoExecutor = Executors.newCachedThreadPool();
         Futures.addCallback(counterInfoResponse, new FutureCallback<>() {
             @Override
             public void onSuccess(CounterInfoResponse counterInfoResponse) {
                 StringBuilder sb = new StringBuilder();
-
-                sb.append("Counters\tAirline\tFlights\tPeople\n");
+                //todo: hacer mas linda la impresion
+                sb.append("Counters\t Airline \t Flights \t People \n");
                 sb.append("##########################################################\n");
                 for (CounterResponse counterResponse : counterInfoResponse.getCountersList()) {
                     sb.append("(").append(counterResponse.getInterval().getLowerBound()).append("-").append(counterResponse.getInterval().getUpperBound()).append(")\t");
-                    sb.append(counterResponse.getAirline()).append("\t");
-                    sb.append("\t");
+                    sb.append(counterResponse.getAirline().isEmpty() ? "-\t" : counterResponse.getAirline()).append("\t");
+//                    sb.append(counterResponse.getAirline()).append("\t"); asi no imprime el -
 
-                    for (String flight : counterResponse.getFlightCodeList()) {
-                        sb.append(flight);
-                        sb.append("|");
+                    if (!counterResponse.getFlightCodeList().isEmpty()) {
+                        Iterator<String> it = counterResponse.getFlightCodeList().stream().toList().iterator();
+                        while (it.hasNext()) {
+                            sb.append(it.next());
+                            if (it.hasNext()) {
+                                sb.append("|");
+                            }
+                        }
+                    } else {
+                        sb.append("-\t");
                     }
 
-//                    sb.deleteCharAt(sb.lastIndexOf("|"));
-
                     sb.append("\t");
-                    sb.append(counterResponse.getPassengers()).append("\n");
+//                    sb.append(counterResponse.getPassengers()).append("\n");
+                    sb.append(counterResponse.getPassengers() != 0 ? counterResponse.getPassengers() : "-\t").append("\n");
+
                 }
 
                 System.out.println(sb);
