@@ -69,7 +69,7 @@ public class PassengerClient {
 
 
 
-            // -------------------------------------------------------------------------------------------------------------------------------------------
+//             -------------------------------------------------------------------------------------------------------------------------------------------
 
 
 
@@ -108,7 +108,7 @@ public class PassengerClient {
             // -------------------------------------------------------------------------------------------------------------------------------------------
 
 
-            Booking statusRequest = Booking.newBuilder().setBookingCode("XYZ234").build();
+            Booking statusRequest = Booking.newBuilder().setBookingCode("YZA456").build();
             ListenableFuture<StatusResponse> statusResponse = stub.status(statusRequest);
             ExecutorService statusExecutor = Executors.newCachedThreadPool();
             Futures.addCallback(statusResponse, new FutureCallback<>(
@@ -120,13 +120,13 @@ public class PassengerClient {
 
                     // TODO agregar al statusResponse un int que sea el numero del counter en donde ya se chequeo
 
-                    if (statusResponse.getCheckinResponse().getCounterInfo().getCounters().getLowerBound()==-1){
+                    if (statusResponse.getStatus()==0){
                         //Booking ABC123 for flight AA123 from AmericanAirlines checked in at counter 4 in Sector C
                         out = "Booking " + statusResponse.getCheckinResponse().getBooking().getBookingCode() + " for flight " + statusResponse.getCheckinResponse().getCounterInfo().getFlightCode() + " checked in at counter " + statusResponse.getCheckinResponse().getCounterInfo().getCounters().getUpperBound() + " in Sector " + statusResponse.getCheckinResponse().getCounterInfo().getSector();
-                    } else if(statusResponse.getCheckinResponse().getCounterInfo().getQueueLen()>0){
+                    } else if(statusResponse.getStatus()==1){
                         //Booking ABC123 for flight AA123 from AmericanAirlines is now waiting to check-in on counters (3-4) in Sector C with 6 people in line
                         out = "Booking " + statusResponse.getCheckinResponse().getBooking().getBookingCode() + " for flight " + statusResponse.getCheckinResponse().getCounterInfo().getFlightCode() + " is now waiting to check-in on counters " + statusResponse.getCheckinResponse().getCounterInfo().getCounters().getLowerBound() + " - " + statusResponse.getCheckinResponse().getCounterInfo().getCounters().getUpperBound() + " in Sector " + statusResponse.getCheckinResponse().getCounterInfo().getSector() + " with " + statusResponse.getCheckinResponse().getCounterInfo().getQueueLen() + " people in line";
-                    } else if(statusResponse.getCheckinResponse().getCounterInfo().getCounters().getLowerBound()>=1){
+                    } else if(statusResponse.getStatus()==2){
                         //Booking ABC123 for flight AA123 from AmericanAirlines can check-in on counters (3-4) in Sector C
                         out = "Booking " + statusResponse.getCheckinResponse().getBooking().getBookingCode() + " for flight " + statusResponse.getCheckinResponse().getCounterInfo().getFlightCode() + " can check-in on counters " + statusResponse.getCheckinResponse().getCounterInfo().getCounters().getLowerBound() + " - " + statusResponse.getCheckinResponse().getCounterInfo().getCounters().getUpperBound() + " in Sector " + statusResponse.getCheckinResponse().getCounterInfo().getSector();
                     } else {

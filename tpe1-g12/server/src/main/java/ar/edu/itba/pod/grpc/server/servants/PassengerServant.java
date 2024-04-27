@@ -81,7 +81,7 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
         statusResponse.ifPresentOrElse(
                 aux -> {
                     responseObserver.onNext(StatusResponse.newBuilder()
-                            .setStatus(0)
+                            .setStatus(statusResponse.get().getStatus())
                             .setCheckinResponse(CheckInResponse.newBuilder()
                                     .setCounterInfo(CounterInfo.newBuilder()
                                             .setAirline(statusResponse.get().getAirline())

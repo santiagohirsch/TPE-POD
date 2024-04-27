@@ -54,13 +54,7 @@ public class Airport {
                     for (Flight flight : counter.getValue().get().getFlightCodes()) {
                         for (String booking : flight.getBookings()) {
                             if (booking.equals(bookingCode)) {
-                                int lastCounter = 0;
-                                //TODO ESTA MAL ESTO, NO ESTOY USANDO i PARA CHEQUEAR EL ULTIMO COUNTER
-                                for (int i = counter.getKey(); !counter.getValue().get().getFlightCodes().contains(flight);) {
-                                    lastCounter = i;
-                                    i+=1;
-                                }
-                                return Optional.of(new CounterInfoBookingModel(new Pair<>(counter.getKey(), lastCounter), counter.getValue().get().getAirline(), counter.getValue().get().getCheckInQueue().size(), sector.getName(), flight.getFlightCode()));
+                                return Optional.of(new CounterInfoBookingModel(new Pair<>(counter.getKey(), counter.getValue().get().getCant() + counter.getKey() - 1), counter.getValue().get().getAirline(), counter.getValue().get().getCheckInQueue().size(), sector.getName(), flight.getFlightCode()));
                             }
                         }
                     }
@@ -106,7 +100,7 @@ public class Airport {
                                         for (int i = counter.getKey(); !counter.getValue().get().getFlightCodes().contains(flight); i++) {
                                             lastCounter = i;
                                         }
-                                        return Optional.of(new CheckInModel(new Pair<>(counter.getKey(), lastCounter), counter.getValue().get().getAirline(), flight.getFlightCode(), counter.getValue().get().getCheckInQueue().size()));
+                                        return Optional.of(new CheckInModel(new Pair<>(counter.getKey(), counter.getKey() + counter.getValue().get().getCant() - 1), counter.getValue().get().getAirline(), flight.getFlightCode(), counter.getValue().get().getCheckInQueue().size()));
 
                                     }
 
@@ -132,7 +126,8 @@ public class Airport {
                                 Assignment counterInfo = counter.getValue().get();
                                 //Ya se chequeo
                                 if(counterInfo.hasCheckedIn(bookingCode)){
-                                    return Optional.of(new CheckInStatusModel(new Pair<>(-1, -1), counter.getValue().get().getAirline(), flight.getFlightCode(), 0, sector.getName(), counterInfo.getCounter(bookingCode)));
+
+                                    return Optional.of(new CheckInStatusModel(new Pair<>(-1, -1), counter.getValue().get().getAirline(), flight.getFlightCode(), 0, sector.getName(), counterInfo.getCounter(bookingCode),0));
                                 }
                                 int lastCounter = 0;
                                 for (int i = counter.getKey(); !counter.getValue().get().getFlightCodes().contains(flight); i++) {
@@ -141,10 +136,10 @@ public class Airport {
                                 //esta en la cola
                                 if(counterInfo.getCheckInQueue().contains(bookingCode)){
 
-                                    return Optional.of(new CheckInStatusModel(new Pair<>(counter.getKey(), lastCounter), counter.getValue().get().getAirline(), flight.getFlightCode(), counter.getValue().get().getCheckInQueue().size(), sector.getName(),0));
+                                    return Optional.of(new CheckInStatusModel(new Pair<>(counter.getKey(), counter.getKey() + counter.getValue().get().getCant() - 1), counter.getValue().get().getAirline(), flight.getFlightCode(), counter.getValue().get().getCheckInQueue().size(), sector.getName(),0,1));
                                 }
                                 //ni esta en la cola
-                                return Optional.of(new CheckInStatusModel(new Pair<>(counter.getKey(), lastCounter), counter.getValue().get().getAirline(), flight.getFlightCode(), 0, sector.getName(),0));
+                                return Optional.of(new CheckInStatusModel(new Pair<>(counter.getKey(), counter.getKey() + counter.getValue().get().getCant() - 1), counter.getValue().get().getAirline(), flight.getFlightCode(), 0, sector.getName(),0,2));
 
 
                             }
