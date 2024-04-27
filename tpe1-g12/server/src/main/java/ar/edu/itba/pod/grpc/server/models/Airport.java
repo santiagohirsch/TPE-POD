@@ -78,7 +78,7 @@ public class Airport {
         return Optional.empty();
     }
 
-    public Optional<CheckInModel> checkIn(String bookingCode, Sector s, int initialCounter) {
+    public Optional<CheckInModel> intoQueue(String bookingCode, Sector s, int initialCounter) {
 
         for (Sector sector: sectors) {
             //Chequeo que haya un sector
@@ -100,7 +100,7 @@ public class Airport {
                                         for (int i = counter.getKey(); !counter.getValue().get().getFlightCodes().contains(flight); i++) {
                                             lastCounter = i;
                                         }
-                                        return Optional.of(new CheckInModel(new Pair<>(counter.getKey(), counter.getKey() + counter.getValue().get().getCant() - 1), counter.getValue().get().getAirline(), flight.getFlightCode(), counter.getValue().get().getCheckInQueue().size()));
+                                        return Optional.of(new CheckInModel(new Pair<>(counter.getKey(), counter.getKey() + counter.getValue().get().getCant() - 1), counter.getValue().get().getAirline(), flight.getFlightCode(), counter.getValue().get().getCheckInQueue().size(), bookingCode));
 
                                     }
 
@@ -127,7 +127,7 @@ public class Airport {
                                 //Ya se chequeo
                                 if(counterInfo.hasCheckedIn(bookingCode)){
 
-                                    return Optional.of(new CheckInStatusModel(new Pair<>(-1, -1), counter.getValue().get().getAirline(), flight.getFlightCode(), 0, sector.getName(), counterInfo.getCounter(bookingCode),0));
+                                    return Optional.of(new CheckInStatusModel(new Pair<>(-1, -1), counter.getValue().get().getAirline(), flight.getFlightCode(), 0, sector.getName(), counterInfo.getCounter(bookingCode),0, bookingCode));
                                 }
                                 int lastCounter = 0;
                                 for (int i = counter.getKey(); !counter.getValue().get().getFlightCodes().contains(flight); i++) {
@@ -136,10 +136,10 @@ public class Airport {
                                 //esta en la cola
                                 if(counterInfo.getCheckInQueue().contains(bookingCode)){
 
-                                    return Optional.of(new CheckInStatusModel(new Pair<>(counter.getKey(), counter.getKey() + counter.getValue().get().getCant() - 1), counter.getValue().get().getAirline(), flight.getFlightCode(), counter.getValue().get().getCheckInQueue().size(), sector.getName(),0,1));
+                                    return Optional.of(new CheckInStatusModel(new Pair<>(counter.getKey(), counter.getKey() + counter.getValue().get().getCant() - 1), counter.getValue().get().getAirline(), flight.getFlightCode(), counter.getValue().get().getCheckInQueue().size(), sector.getName(),0,1, bookingCode));
                                 }
                                 //ni esta en la cola
-                                return Optional.of(new CheckInStatusModel(new Pair<>(counter.getKey(), counter.getKey() + counter.getValue().get().getCant() - 1), counter.getValue().get().getAirline(), flight.getFlightCode(), 0, sector.getName(),0,2));
+                                return Optional.of(new CheckInStatusModel(new Pair<>(counter.getKey(), counter.getKey() + counter.getValue().get().getCant() - 1), counter.getValue().get().getAirline(), flight.getFlightCode(), 0, sector.getName(),0,2, bookingCode));
 
 
                             }
@@ -317,5 +317,32 @@ public class Airport {
 
         return targetSector.getCounterInfo(interval);
 
+    }
+
+    public List<CheckInResponseModel> checkInCounters(String sectorName, int from, String airline) {
+
+        for (Sector sector: sectors) {
+            //Chequeo que haya un sector
+            if(sector.getName().equals(sectorName)){
+                Optional<Assignment> assignment = sector.getAssignedCounters().getOrDefault(from, Optional.empty());
+                if (assignment.isEmpty()){
+                    // NO EXISTE COUNTER
+                    // TODO exception
+                    return Collections.emptyList();
+                }
+                if (assignment.get().getAirline().equals(airline)){
+                    return assignment.get().checkAll(from);
+                } else {
+                    //existe pero en otra airline
+                    // TODO exception
+                    return Collections.emptyList();
+                }
+            }
+
+        }
+
+        // no existe el sector
+        // TODO excetption
+        return Collections.emptyList();
     }
 }

@@ -111,12 +111,12 @@ public class CounterClient {
         //2.3
         List<String> flightCodes = new ArrayList<>();
         flightCodes.add("AA123");
-        flightCodes.add("AA234");
+//        flightCodes.add("AA234");
         AssignCounterInfo assignCounterInfo = AssignCounterInfo.newBuilder()
                 .setSector(SectorData.newBuilder().setName("A"))
                 .setAirline("AmericanAirlines")
                 .addAllFlightCodes(flightCodes)
-                .setCount(2)
+                .setCount(3)
                 .build();
         ListenableFuture<AssignCounterResponse> assignCounterResponse = stub.assignCounters(assignCounterInfo);
         ExecutorService assignCounterExecutor = Executors.newCachedThreadPool();
@@ -215,6 +215,33 @@ public class CounterClient {
                 latch.countDown();
             }
         },freeCountersExecutor);
+
+        //2.5
+        CheckInInfo checkInInfo = CheckInInfo.newBuilder().setAirline("AmericanAirlines").setSector(SectorData.newBuilder().setName("A").build()).setFrom(5).build();
+        ListenableFuture<ListCheckInResponse> listCheckInResponse = stub.checkInCounters(checkInInfo);
+        ExecutorService listCheckInExecutor = Executors.newCachedThreadPool();
+
+        Futures.addCallback(listCheckInResponse, new FutureCallback<ListCheckInResponse>() {
+            @Override
+            public void onSuccess(ListCheckInResponse listCheckInResponse) {
+                StringBuilder sb = new StringBuilder();
+                for (CheckInResponse checkInResponse : listCheckInResponse.getInfoList()) {
+                    if (checkInResponse.getFlightCode().isEmpty()){
+                        sb.append("Counter " + checkInResponse.getCounter() + " is idle\n");
+                    } else {
+                        sb.append("Check-in successful of " + checkInResponse.getCheckinCode() + " for flight " + checkInResponse.getFlightCode() + " at counter " + checkInResponse.getCounter() + "\n");
+                    }
+                }
+                System.out.println(sb);
+                latch.countDown();
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                System.out.println(throwable.getMessage());
+                latch.countDown();
+            }
+        }, listCheckInExecutor);
 
         //2.6
         SectorData sectorData = SectorData.newBuilder().setName("A").build();
