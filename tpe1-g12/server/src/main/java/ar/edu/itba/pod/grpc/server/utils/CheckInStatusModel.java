@@ -11,8 +11,9 @@ public class CheckInStatusModel {
 
     private final String sector;
     private final Integer status;
+    private final String bookingCode;
 
-    public CheckInStatusModel(Pair<Integer, Integer> interval, String airline, String flightCode, int peopleAhead, String sector, Integer counter, Integer status) {
+    public CheckInStatusModel(Pair<Integer, Integer> interval, String airline, String flightCode, int peopleAhead, String sector, Integer counter, Integer status, String bookingCode) {
         this.interval = interval;
         this.airline = airline;
         this.flightCode = flightCode;
@@ -20,6 +21,7 @@ public class CheckInStatusModel {
         this.sector = sector;
         this.counter = counter;
         this.status = status;
+        this.bookingCode = bookingCode;
     }
 
     public Pair<Integer, Integer> getInterval() {
@@ -44,5 +46,13 @@ public class CheckInStatusModel {
 
     public Integer getStatus() {
         return status;
+    }
+
+    public Integer getCounter() {
+        return counter;
+    }
+
+    public String getBookingCode() {
+        return bookingCode;
     }
 }

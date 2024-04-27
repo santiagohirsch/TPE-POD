@@ -8,12 +8,14 @@ public class CheckInModel {
     private final String airline;
     private final String flightCode;
     private final int peopleAhead;
+    private final String bookingCode;
 
-    public CheckInModel(Pair<Integer, Integer> interval, String airline, String flightCode, int peopleAhead) {
+    public CheckInModel(Pair<Integer, Integer> interval, String airline, String flightCode, int peopleAhead, String bookingCode) {
         this.interval = interval;
         this.airline = airline;
         this.flightCode = flightCode;
         this.peopleAhead = peopleAhead;
+        this.bookingCode = bookingCode;
     }
 
 
@@ -31,5 +33,9 @@ public class CheckInModel {
 
     public int getPeopleAhead() {
         return peopleAhead;
+    }
+
+    public String getBookingCode() {
+        return bookingCode;
     }
 }

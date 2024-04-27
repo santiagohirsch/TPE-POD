@@ -52,10 +52,12 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
 
     @Override
     public void checkIn(CheckInInfo request, StreamObserver<CheckInResponse> responseObserver) {
-        Optional <CheckInModel> checkInResponse = this.airport.checkIn(request.getBooking().getBookingCode(),new Sector( request.getSectorName()), request.getCounter());
+        Optional <CheckInModel> checkInResponse = this.airport.intoQueue(request.getBooking().getBookingCode(),new Sector( request.getSectorName()), request.getCounter());
         checkInResponse.ifPresentOrElse(
+                //TODO la variable esta ya hace el get()!!!
                 aux -> {
                     responseObserver.onNext(CheckInResponse.newBuilder()
+                                    .setBooking(Booking.newBuilder().setBookingCode(aux.getBookingCode()).build())
                             .setCounterInfo(CounterInfo.newBuilder()
                                     .setAirline(checkInResponse.get().getAirline())
                                     .setFlightCode(checkInResponse.get().getFlightCode())
@@ -83,6 +85,8 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
                     responseObserver.onNext(StatusResponse.newBuilder()
                             .setStatus(statusResponse.get().getStatus())
                             .setCheckinResponse(CheckInResponse.newBuilder()
+                                    .setBooking(Booking.newBuilder().setBookingCode(aux.getBookingCode()).build())
+                                    .setCounter(aux.getCounter())
                                     .setCounterInfo(CounterInfo.newBuilder()
                                             .setAirline(statusResponse.get().getAirline())
                                             .setFlightCode(statusResponse.get().getFlightCode())
