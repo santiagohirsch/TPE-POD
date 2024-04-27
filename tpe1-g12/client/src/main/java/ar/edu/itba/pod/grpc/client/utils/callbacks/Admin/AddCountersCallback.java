@@ -1,11 +1,12 @@
-package ar.edu.itba.pod.grpc.client.utils.callbacks;
+package ar.edu.itba.pod.grpc.client.utils.callbacks.Admin;
 
 import ar.edu.itba.pod.grpc.admin.CounterResponse;
+import ar.edu.itba.pod.grpc.client.utils.callbacks.CustomFutureCallback;
 import org.slf4j.Logger;
 
 import java.util.concurrent.CountDownLatch;
 
-public class AddCountersCallback extends CustomFutureCallback<CounterResponse>{
+public class AddCountersCallback extends CustomFutureCallback<CounterResponse> {
 
     public AddCountersCallback(Logger logger, CountDownLatch latch) {
         super(logger, latch);

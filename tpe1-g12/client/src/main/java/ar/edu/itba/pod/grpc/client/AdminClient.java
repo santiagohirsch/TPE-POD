@@ -1,8 +1,9 @@
 package ar.edu.itba.pod.grpc.client;
 
 import ar.edu.itba.pod.grpc.admin.*;
-import ar.edu.itba.pod.grpc.client.utils.callbacks.*;
-import com.google.common.util.concurrent.FutureCallback;
+import ar.edu.itba.pod.grpc.client.utils.callbacks.Admin.AddBookingCallback;
+import ar.edu.itba.pod.grpc.client.utils.callbacks.Admin.AddCountersCallback;
+import ar.edu.itba.pod.grpc.client.utils.callbacks.Admin.AddSectorCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.BoolValue;

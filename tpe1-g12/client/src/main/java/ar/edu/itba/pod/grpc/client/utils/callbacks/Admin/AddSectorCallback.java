@@ -1,12 +1,13 @@
-package ar.edu.itba.pod.grpc.client.utils.callbacks;
+package ar.edu.itba.pod.grpc.client.utils.callbacks.Admin;
 
 import ar.edu.itba.pod.grpc.admin.SectorData;
+import ar.edu.itba.pod.grpc.client.utils.callbacks.CustomFutureCallback;
 import com.google.protobuf.BoolValue;
 import org.slf4j.Logger;
 
 import java.util.concurrent.CountDownLatch;
 
-public class AddSectorCallback extends CustomFutureCallback<BoolValue>{
+public class AddSectorCallback extends CustomFutureCallback<BoolValue> {
     private final SectorData request;
 
     public AddSectorCallback(Logger logger, CountDownLatch latch, SectorData request) {

@@ -1,12 +1,13 @@
-package ar.edu.itba.pod.grpc.client.utils.callbacks;
+package ar.edu.itba.pod.grpc.client.utils.callbacks.Admin;
 
 import ar.edu.itba.pod.grpc.admin.Booking;
+import ar.edu.itba.pod.grpc.client.utils.callbacks.CustomFutureCallback;
 import com.google.protobuf.BoolValue;
 import org.slf4j.Logger;
 
 import java.util.concurrent.CountDownLatch;
 
-public class AddBookingCallback extends CustomFutureCallback<BoolValue>{
+public class AddBookingCallback extends CustomFutureCallback<BoolValue> {
     private final Booking booking;
 
     public AddBookingCallback(Logger logger, CountDownLatch latch, Booking booking) {
