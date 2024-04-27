@@ -1,6 +1,8 @@
 package ar.edu.itba.pod.grpc.server.models;
 
 import ar.edu.itba.pod.grpc.event.RegisterInfo;
+import ar.edu.itba.pod.grpc.counter.CounterInfoResponse;
+import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 import com.google.protobuf.BoolValue;
 import com.google.protobuf.Empty;
@@ -10,6 +12,7 @@ import java.util.*;
 public class Airport {
     private List<Sector> sectors;
     private List<Airline> airlines;
+    private static int nextAvailableCounter = 1;
 
     public Airport() {
         this.sectors = new ArrayList<>();
@@ -40,7 +43,9 @@ public class Airport {
     public Optional<Pair<Integer,Integer>> addCounters(Sector sector, int cant){
         for (Sector s : sectors) {
             if (s.equals(sector)) {
-                return Optional.of(s.addCounters(cant));
+                Optional<Pair<Integer,Integer>> toReturn = Optional.of(s.addCounters(cant, nextAvailableCounter));
+                nextAvailableCounter = toReturn.get().getRight() + 1;
+                return toReturn;
             }
         }
         return Optional.empty();
@@ -91,7 +96,7 @@ public class Airport {
             countersPerSectors.put(sector.getName(), new ArrayList<>());
             int start = -1;
             int end = -1;
-            for (Integer counter : sector.getCounters().keySet()) {
+            for (Integer counter : sector.getAssignedCounters().keySet()) {
                 if (start == -1) {
                     start = counter;
                     end = counter;
@@ -129,5 +134,96 @@ public class Airport {
         }
 
         return false;
+    }
+
+    public Pair<Integer, Integer> assignCounters(String sector, List<String> flightCodes, String airline, int count) {
+        // (-1,-1) = error | (0, 0) = pending
+        Sector targetSector = null;
+        for (Sector s : this.sectors) {
+            if (s.getName().equals(sector)) {
+                targetSector = s;
+                break;
+            }
+        }
+        if (targetSector == null) {
+            return new Pair<>(-1, -1);
+        }
+
+        String targetAirline = null;
+        List<Flight> airlineFlights = new ArrayList<>();
+
+        for (Airline a : this.airlines) {
+
+
+            for (Flight flight : a.getFlights()) {
+                if (flightCodes.contains(flight.getFlightCode())) {
+                    if (!a.getName().equals(airline)) {
+                        return new Pair<>(-1, -1);
+                    } else if (flight.getBookings().isEmpty()) {
+                        return new Pair<>(-1, -1);
+                    } else {
+                        airlineFlights.add(flight);
+                    }
+                }
+            }
+            if (a.getName().equals(airline)) {
+                if (a.getFlights().stream().map(Flight::getFlightCode).toList().containsAll(flightCodes)) {
+                    targetAirline = airline;
+                }
+            }
+        }
+
+        if (targetAirline == null) {
+            return new Pair<>(-1, -1);
+        }
+
+
+        return targetSector.assignCounters(targetAirline, airlineFlights, count);
+    }
+
+    public int getPendingAhead(String sector, List<String> flightCodes, String airline, int count) {
+        return this.sectors.get(this.sectors.indexOf(new Sector(sector))).getPendingAhead(new Assignment(airline, flightCodes.stream().map(Flight::new).toList(), count));
+    }
+
+    public Optional<Assignment>  freeCounters(String sector, int from, String airline) {
+        Sector targetSector = getSectorByName(sector);
+        if(targetSector == null) {
+            return Optional.empty(); //todo checkear
+        }
+
+        return targetSector.freeCounters(from,airline);
+    }
+
+    public Optional<Queue<Assignment>> listPendingAssignments(String sectorName) {
+        Sector targetSector = getSectorByName(sectorName);
+        if(targetSector == null) {
+            return Optional.empty(); //todo deberia fallar!
+        }
+        return targetSector.listPendingAssignments();
+    }
+
+     private Sector getSectorByName(String sectorName) {
+        Sector targetSector = null;
+        for (Sector s : this.sectors) {
+            if (s.getName().equals(sectorName)) {
+                targetSector = s;
+                break;
+            }
+        }
+        return targetSector;
+    }
+
+    public List<CounterInfoModel> getCounterInfo(String sectorName, Pair<Integer, Integer> interval) {
+        Sector targetSector = getSectorByName(sectorName);
+        if (targetSector == null || interval.getLeft() > interval.getRight()) {
+            return null;            //todo deberia fallar!
+        }
+
+        if (targetSector.getAssignedCounters().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return targetSector.getCounterInfo(interval);
+
     }
 }
