@@ -5,8 +5,6 @@ import ar.edu.itba.pod.grpc.server.models.Airport;
 import ar.edu.itba.pod.grpc.server.models.Sector;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 import com.google.protobuf.BoolValue;
-import io.grpc.Status;
-import io.grpc.StatusException;
 import io.grpc.stub.StreamObserver;
 
 import java.util.Optional;
@@ -36,8 +34,8 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
                                     .setSector(request.getSector())
                                     .setCount(request.getCount())
                                     .setInterval(Interval.newBuilder()
-                                            .setLowerBound(interval.get().getValue1())
-                                            .setUpperBound(interval.get().getValue2())
+                                            .setLowerBound(interval.get().getLeft())
+                                            .setUpperBound(interval.get().getRight())
                                             .build()).build());
                     responseObserver.onCompleted();
                 },
@@ -50,7 +48,9 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
     }
 
     @Override
-    public StreamObserver<Booking> addBooking(StreamObserver<BoolValue> responseObserver) {
-        return super.addBooking(responseObserver);
+    public void addBooking(Booking request, StreamObserver<BoolValue> responseObserver) {
+        boolean response = this.airport.addBooking(request.getBookingCode(), request.getFlightCode(), request.getAirline());
+        responseObserver.onNext(BoolValue.of(response));
+        responseObserver.onCompleted();
     }
 }

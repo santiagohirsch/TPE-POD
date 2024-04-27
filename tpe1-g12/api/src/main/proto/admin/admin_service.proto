@@ -9,7 +9,7 @@ import "google/protobuf/wrappers.proto";
 service AdminService {
   rpc AddSector(SectorData) returns (google.protobuf.BoolValue);
   rpc AddCounters(CounterCount) returns (CounterResponse);
-  rpc AddBooking(stream Booking) returns (stream google.protobuf.BoolValue);
+  rpc AddBooking(Booking) returns (google.protobuf.BoolValue);
 }
 
 message SectorData{

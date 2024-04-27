@@ -23,4 +23,16 @@ public class Airline {
     public void setFlights(List<Flight> flights) {
         this.flights = flights;
     }
+
+    public void addFlight(Flight new_flight){ this.flights.add(new_flight); }
+
+    public void addBookingToFlight(String flightCode, String bookingCode) {
+        for (Flight flight : this.flights) {
+            if (flight.getFlightCode().equals(flightCode)) {
+                flight.addBooking(bookingCode);
+                break;
+            }
+        }
+    }
+
 }
