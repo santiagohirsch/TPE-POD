@@ -38,6 +38,7 @@ message CheckInInfo {
 message CheckInResponse {
   Booking booking = 1;
   CounterInfo counter_info = 2;
+  int32 counter = 3;
 }
 
 message StatusResponse {

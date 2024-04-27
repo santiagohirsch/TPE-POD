@@ -11,7 +11,7 @@ service CounterService {
   rpc GetCounterInfo(CounterInfo) returns (CounterInfoResponse);
   rpc AssignCounters(AssignCounterInfo) returns (AssignCounterResponse);
   rpc FreeCounters(FreeCounterInfo) returns (FreeCounterResponse);
-  rpc CheckInCounters(CheckInInfo) returns ( ListCheckInResponse);
+  rpc CheckInCounters(CheckInInfo) returns (ListCheckInResponse);
   rpc ListPendingAssignments(SectorData) returns ( ListPendingAssignmentResponse);
 }
 
@@ -77,7 +77,7 @@ message FreeCounterResponse {
 
 message CheckInInfo {
   int32 from = 1;
-  string counter_name = 2;
+  SectorData sector = 2;
   string airline = 3;
 }
 
