@@ -32,8 +32,11 @@ public class PassengerClient {
 
             CountDownLatch latch = new CountDownLatch(1);
             PassengerServiceGrpc.PassengerServiceFutureStub stub = PassengerServiceGrpc.newFutureStub(channel);
+
             //CounterInfo request = CounterInfo.newBuilder().setCounters(Interval.newBuilder().setLowerBound(1).setUpperBound(3)).setSector("A").setAirline("Americas").setQueueLen(6).setFlightCode("AA123").build();
-            Booking request = Booking.newBuilder().setBookingCode("XYZ345").build();
+            Booking request = Booking.newBuilder().setBookingCode("XYZ234").build();
+            //YZA456
+            //XYZ234
             ListenableFuture<CounterInfo> response = stub.fetchCounter(request);
             //SectorData request = SectorData.newBuilder().setName("A").build();
             //ListenableFuture<BoolValue> response = stub.addSector(request);
@@ -46,8 +49,11 @@ public class PassengerClient {
                 public void onSuccess(CounterInfo counterInfo) {
                     String out;
 
-                    out = "Flight " + counterInfo.getFlightCode() + "from " + counterInfo.getAirline() + "is now checking in at counters " + counterInfo.getCounters() + "in Sector " + counterInfo.getSector() + "with " + counterInfo.getQueueLen();
-
+                    out = "Flight " + counterInfo.getFlightCode() + " from " + counterInfo.getAirline() + " is now checking in at counters " + counterInfo.getCounters().getLowerBound() + " - " + counterInfo.getCounters().getUpperBound() + " in Sector " + counterInfo.getSector() + " with " + counterInfo.getQueueLen() + " people in line";
+                    if(counterInfo.getCounters().getLowerBound()==-1){
+                        //   Flight AA123 from AmericanAirlines has no counters assigned yet
+                        out = "Flight " + counterInfo.getFlightCode() + " from " + counterInfo.getAirline() + " has no counters assigned yet";
+                    }
                     System.out.println(out);
                     latch.countDown();
                 }
@@ -59,10 +65,17 @@ public class PassengerClient {
                 }
             }, executor);
 
+
+
+
+
             // -------------------------------------------------------------------------------------------------------------------------------------------
 
+
+
+            ExecutorService checkInExecutor = Executors.newCachedThreadPool();
             CheckInInfo checkInRequest = CheckInInfo.newBuilder()
-                    .setBooking(Booking.newBuilder().setBookingCode("ABC123").build())
+                    .setBooking(Booking.newBuilder().setBookingCode("XYZ234").build())
                     .setCounter(1)
                     .setSectorName("A")
                     .build();
@@ -84,31 +97,41 @@ public class PassengerClient {
 
                 @Override
                 public void onFailure(Throwable throwable) {
-                    System.out.println(response);
+                    //System.out.println(response);
                     System.out.println("fallo");
                     latch.countDown();
                 }
-            }, executor);
+            }, checkInExecutor);
 
 
-            Booking booking = Booking.newBuilder()
-                    .setBookingCode("ABC123")
-                    .build();
-                    /*CheckInInfo.newBuilder()
-                    .setBooking(Booking.newBuilder().setBookingCode("ABC123").build())
-                    .setCounter(1)
-                    .setSectorName("A")
-                    .build();*/
-            ListenableFuture<StatusResponse> statusResponse = stub.status(booking);
-            ExecutorService statuExecutor = Executors.newCachedThreadPool();
+
+            // -------------------------------------------------------------------------------------------------------------------------------------------
+
+
+            Booking statusRequest = Booking.newBuilder().setBookingCode("XYZ234").build();
+            ListenableFuture<StatusResponse> statusResponse = stub.status(statusRequest);
+            ExecutorService statusExecutor = Executors.newCachedThreadPool();
             Futures.addCallback(statusResponse, new FutureCallback<>(
             ) {
 
                 @Override
-                public void onSuccess(StatusResponse stResponse) {
+                public void onSuccess(StatusResponse statusResponse) {
                     String out;
 
-                    out = "Booking" + stResponse.getCheckinResponse().getBooking().getBookingCode() + " for flight" + stResponse.getCheckinResponse().getCounterInfo().getFlightCode() + " checked in at counter " + stResponse.getCheckinResponse().getCounterInfo().getCounters() + " in Sector " + stResponse.getCheckinResponse().getCounterInfo().getSector();
+                    // TODO agregar al statusResponse un int que sea el numero del counter en donde ya se chequeo
+
+                    if (statusResponse.getCheckinResponse().getCounterInfo().getCounters().getLowerBound()==-1){
+                        //Booking ABC123 for flight AA123 from AmericanAirlines checked in at counter 4 in Sector C
+                        out = "Booking " + statusResponse.getCheckinResponse().getBooking().getBookingCode() + " for flight " + statusResponse.getCheckinResponse().getCounterInfo().getFlightCode() + " checked in at counter " + statusResponse.getCheckinResponse().getCounterInfo().getCounters().getUpperBound() + " in Sector " + statusResponse.getCheckinResponse().getCounterInfo().getSector();
+                    } else if(statusResponse.getCheckinResponse().getCounterInfo().getQueueLen()>0){
+                        //Booking ABC123 for flight AA123 from AmericanAirlines is now waiting to check-in on counters (3-4) in Sector C with 6 people in line
+                        out = "Booking " + statusResponse.getCheckinResponse().getBooking().getBookingCode() + " for flight " + statusResponse.getCheckinResponse().getCounterInfo().getFlightCode() + " is now waiting to check-in on counters " + statusResponse.getCheckinResponse().getCounterInfo().getCounters().getLowerBound() + " - " + statusResponse.getCheckinResponse().getCounterInfo().getCounters().getUpperBound() + " in Sector " + statusResponse.getCheckinResponse().getCounterInfo().getSector() + " with " + statusResponse.getCheckinResponse().getCounterInfo().getQueueLen() + " people in line";
+                    } else if(statusResponse.getCheckinResponse().getCounterInfo().getCounters().getLowerBound()>=1){
+                        //Booking ABC123 for flight AA123 from AmericanAirlines can check-in on counters (3-4) in Sector C
+                        out = "Booking " + statusResponse.getCheckinResponse().getBooking().getBookingCode() + " for flight " + statusResponse.getCheckinResponse().getCounterInfo().getFlightCode() + " can check-in on counters " + statusResponse.getCheckinResponse().getCounterInfo().getCounters().getLowerBound() + " - " + statusResponse.getCheckinResponse().getCounterInfo().getCounters().getUpperBound() + " in Sector " + statusResponse.getCheckinResponse().getCounterInfo().getSector();
+                    } else {
+                        out = "error";
+                    }
 
                     System.out.println(out);
                     latch.countDown();
@@ -116,12 +139,20 @@ public class PassengerClient {
 
                 @Override
                 public void onFailure(Throwable throwable) {
-                    System.out.println(response);
+                    //System.out.println(response);
                     System.out.println("fallo");
                     latch.countDown();
                 }
-            }, executor);
+            }, statusExecutor);
 
+
+
+
+
+
+
+
+            latch.await();
         } finally {
             channel.shutdown().awaitTermination(10, TimeUnit.SECONDS);
         }

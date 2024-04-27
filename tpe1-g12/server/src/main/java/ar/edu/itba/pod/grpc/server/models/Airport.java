@@ -1,9 +1,7 @@
 package ar.edu.itba.pod.grpc.server.models;
 
 import ar.edu.itba.pod.grpc.passenger.*;
-import ar.edu.itba.pod.grpc.counter.CounterInfoResponse;
-import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
-import ar.edu.itba.pod.grpc.server.utils.Pair;
+import ar.edu.itba.pod.grpc.server.utils.*;
 
 import java.util.*;
 
@@ -49,68 +47,112 @@ public class Airport {
         return Optional.empty();
     }
 
-    public Optional<ar.edu.itba.pod.grpc.passenger.CounterInfo> fetchCounter(Booking request) {
+    public Optional<CounterInfoBookingModel> fetchCounter(String bookingCode) {
         for (Sector sector: sectors) {
-            for (Map.Entry<Integer, Optional<Airline>> counter: sector.getCounters().entrySet()) {
+            for (Map.Entry<Integer, Optional<Assignment>> counter: sector.getAssignedCounters().entrySet()) {
                 if (counter.getValue().isPresent()) {
-                    for (Flight flight : counter.getValue().get().getFlights()) {
+                    for (Flight flight : counter.getValue().get().getFlightCodes()) {
                         for (String booking : flight.getBookings()) {
-                            if (booking.equals(request.getBookingCode())) {
+                            if (booking.equals(bookingCode)) {
                                 int lastCounter = 0;
-                                for (int i = counter.getKey(); !counter.getValue().get().getFlights().contains(flight); i++) {
+                                //TODO ESTA MAL ESTO, NO ESTOY USANDO i PARA CHEQUEAR EL ULTIMO COUNTER
+                                for (int i = counter.getKey(); !counter.getValue().get().getFlightCodes().contains(flight);) {
                                     lastCounter = i;
+                                    i+=1;
                                 }
-                                return Optional.of(CounterInfo.newBuilder().setAirline(counter.getValue().get().getName())
-                                        .setFlightCode(flight.getFlightCode())
-                                        .setCounters(Interval.newBuilder().setLowerBound(counter.getKey()).setUpperBound(lastCounter).build())
-                                        .setSector(sector.getName())
-                                        .setQueueLen(0)//todo
-                                        .build());
+                                return Optional.of(new CounterInfoBookingModel(new Pair<>(counter.getKey(), lastCounter), counter.getValue().get().getAirline(), counter.getValue().get().getCheckInQueue().size(), sector.getName(), flight.getFlightCode()));
                             }
                         }
                     }
                 }
             }
         }
-        return Optional.empty();
-    }
 
-    public Optional<CheckInResponse> checkIn(CheckInInfo checkInInfo) {
-        //todo falla si no existe el booking
-        //No existe un sector con ese nombre
-        //El número de mostrador no corresponde con el inicio de un rango de mostradores asignado a la aerolínea que esté aceptando pasajeros del vuelo de la reserva
-        //El pasajero ya ingresó en la cola del rango
-        //El pasajero ya realizó el check-in de la reserva
-        for(Sector sector : sectors) {
-            if(sector.getName().equals(checkInInfo.getSectorName())) {
-                if(sector.getCounters().get(checkInInfo.getCounter()).isPresent() ) {
-                    //List<Flight> flightsOnCounter = sector.getCounters().get(checkInInfo.getCounter()).get().getFlights();
-                    /*for(int  i = checkInInfo.getCounter() ; sector.getCounters().get(i).isPresent() && containsFlightCode(sector.getCounters().get(i).get().getFlights(),flightsOnCounter) ; i++ ) {
 
-                    }*/ //este for es para ver si ese mostrador contiene a los vuelos de el primero (pero deberiamos tener una manera mas facil de buscar los mostradores asignados al vuelo)
-                    //todo if de que no este en la cola
-                        //todo if de que ya hizo el check-in
-                            return Optional.of(CheckInResponse.newBuilder()
-                                            .setBooking(checkInInfo.getBooking())
-                                            .setCounterInfo(CounterInfo.newBuilder()
-                                                    .setSector(checkInInfo.getSectorName())
-                                                    .setAirline(sector.getCounters().get(checkInInfo.getCounter()).get().getName())
-                                                    .setFlightCode("ABC123" /*todo cuando pueda getear el vuelo dado el pasajero q hace la cola */)
-                                                    .setQueueLen(0)
-                                                    .build())
-                                    .build());
+        for(Sector sector: sectors){
+            for(Airline airline: airlines){
+                for(Flight flight: airline.getFlights()){
+                    for(String booking: flight.getBookings()){
+                        if(booking.equals(bookingCode)){
+                            return Optional.of(new CounterInfoBookingModel(new Pair<>(-1, -1), airline.getName(), 0, sector.getName(), flight.getFlightCode()));
+                        }
+                    }
                 }
             }
         }
+
         return Optional.empty();
     }
 
-    public Optional<StatusResponse> status(Booking booking) {
-        //todo falla si
-        //No existe un pasajero esperado con ese código de reserva
-        //No hay un rango de mostradores asignados que atiendan pasajeros del vuelo correspondiente al código de reserva indicado
+    public Optional<CheckInModel> checkIn(String bookingCode, Sector s, int initialCounter) {
 
-        //todo buscar estado de check-in (sigue en la fila o no)
+        for (Sector sector: sectors) {
+            //Chequeo que haya un sector
+            if(sector.equals(s)){
+                for (Map.Entry<Integer, Optional<Assignment>> counter: sector.getAssignedCounters().entrySet()) {
+                    if (counter.getValue().isPresent()) {
+                        for (Flight flight : counter.getValue().get().getFlightCodes()) {
+                            for (String booking : flight.getBookings()) {
+                                // Chequeo si existe un booking
+                                if (booking.equals(bookingCode)) {
+                                    //Chequeo si el mostrador es el correcto
+                                    if (initialCounter==counter.getKey()){
+                                        // Chequeo si ya esta haciendo la cola o si ya hizo check in
+                                        if(counter.getValue().get().getCheckInQueue().contains(bookingCode) || counter.getValue().get().hasCheckedIn(bookingCode)){
+                                            return Optional.empty();
+                                        }
+                                        counter.getValue().get().addToQueue(bookingCode);
+                                        int lastCounter = 0;
+                                        for (int i = counter.getKey(); !counter.getValue().get().getFlightCodes().contains(flight); i++) {
+                                            lastCounter = i;
+                                        }
+                                        return Optional.of(new CheckInModel(new Pair<>(counter.getKey(), lastCounter), counter.getValue().get().getAirline(), flight.getFlightCode(), counter.getValue().get().getCheckInQueue().size()));
+
+                                    }
+
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        }
+
+        return Optional.empty();
+    }
+
+    public Optional<CheckInStatusModel> status(String bookingCode) {
+        for (Sector sector: sectors) {
+            for (Map.Entry<Integer, Optional<Assignment>> counter: sector.getAssignedCounters().entrySet()) {
+                if (counter.getValue().isPresent()) {
+                    for (Flight flight : counter.getValue().get().getFlightCodes()) {
+                        for (String booking : flight.getBookings()) {
+                            if (booking.equals(bookingCode)) {
+                                Assignment counterInfo = counter.getValue().get();
+                                //Ya se chequeo
+                                if(counterInfo.hasCheckedIn(bookingCode)){
+                                    return Optional.of(new CheckInStatusModel(new Pair<>(-1, -1), counter.getValue().get().getAirline(), flight.getFlightCode(), 0, sector.getName(), counterInfo.getCounter(bookingCode)));
+                                }
+                                int lastCounter = 0;
+                                for (int i = counter.getKey(); !counter.getValue().get().getFlightCodes().contains(flight); i++) {
+                                    lastCounter = i;
+                                }
+                                //esta en la cola
+                                if(counterInfo.getCheckInQueue().contains(bookingCode)){
+
+                                    return Optional.of(new CheckInStatusModel(new Pair<>(counter.getKey(), lastCounter), counter.getValue().get().getAirline(), flight.getFlightCode(), counter.getValue().get().getCheckInQueue().size(), sector.getName(),0));
+                                }
+                                //ni esta en la cola
+                                return Optional.of(new CheckInStatusModel(new Pair<>(counter.getKey(), lastCounter), counter.getValue().get().getAirline(), flight.getFlightCode(), 0, sector.getName(),0));
+
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
 
         return Optional.empty();
     }
