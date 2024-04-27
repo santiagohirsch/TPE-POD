@@ -3,6 +3,8 @@ package ar.edu.itba.pod.grpc.server.servants;
 import ar.edu.itba.pod.grpc.counter.*;
 import ar.edu.itba.pod.grpc.server.models.Airport;
 import ar.edu.itba.pod.grpc.server.models.Assignment;
+import ar.edu.itba.pod.grpc.server.models.Flight;
+import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
@@ -46,8 +48,27 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
 
 
     @Override
-    public void getCounterInfo(CounterInfo request, StreamObserver<CounterResponse> responseObserver) {
-        super.getCounterInfo(request, responseObserver);
+    public void getCounterInfo(CounterInfo request, StreamObserver<CounterInfoResponse> responseObserver) {
+        String sector = request.getName();
+        Pair<Integer, Integer> interval = new Pair<>(request.getInterval().getLowerBound(), request.getInterval().getUpperBound());
+        List<CounterInfoModel> response = this.airport.getCounterInfo(sector, interval);
+        if (response == null) {
+            responseObserver.onError(new IllegalArgumentException("Non-existent sector"));
+        } else {
+            CounterInfoResponse.Builder builder = CounterInfoResponse.newBuilder();
+            response.forEach((counterInfoModel -> builder.addCounters(
+                    CounterResponse.newBuilder()
+                            .setInterval(Interval.newBuilder()
+                                    .setLowerBound(counterInfoModel.getInterval().getLeft())
+                                    .setUpperBound(counterInfoModel.getInterval().getRight())
+                                    .build())
+                            .setAirline(counterInfoModel.getAirline())
+                            .addAllFlightCode(counterInfoModel.getFlightCodes())
+                            .setPassengers(counterInfoModel.getPeople())
+            )));
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
     }
 
     @Override
@@ -82,7 +103,7 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
 
         if (freedCounters.isPresent()) {
             FreeCounterResponse freeCounterResponse = FreeCounterResponse.newBuilder()
-                    .addAllFlightCodes(freedCounters.get().getFlightCodes())
+                    .addAllFlightCodes(freedCounters.get().getFlightCodes().stream().map(Flight::getFlightCode).toList())
                     .setSector(SectorData.newBuilder()
                             .setName(request.getCounterName())
                             .build())
@@ -107,7 +128,7 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
         List<PendingAssignment> pendingAssignmentsResponse = new LinkedList<>();
         if(pendingAssignments.isPresent()) {
             for (Assignment assignment: pendingAssignments.get()) {
-                List<String> flightCodes = new LinkedList<>(assignment.getFlightCodes());
+                List<String> flightCodes = new LinkedList<>(assignment.getFlightCodes().stream().map(Flight::getFlightCode).toList());
                 pendingAssignmentsResponse.add(PendingAssignment.newBuilder().setCounters(assignment.getCant()).setAirline(assignment.getAirline()).addAllFlightCodes(flightCodes).build());
             }
             ListPendingAssignmentResponse listPendingAssignmentResponse = ListPendingAssignmentResponse.newBuilder().addAllPendings(pendingAssignmentsResponse)

@@ -1,5 +1,7 @@
 package ar.edu.itba.pod.grpc.server.models;
 
+import ar.edu.itba.pod.grpc.counter.CounterInfoResponse;
+import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 
 import java.util.*;
@@ -125,14 +127,19 @@ public class Airport {
         }
 
         String targetAirline = null;
+        List<Flight> airlineFlights = new ArrayList<>();
 
         for (Airline a : this.airlines) {
+
+
             for (Flight flight : a.getFlights()) {
                 if (flightCodes.contains(flight.getFlightCode())) {
                     if (!a.getName().equals(airline)) {
                         return new Pair<>(-1, -1);
                     } else if (flight.getBookings().isEmpty()) {
                         return new Pair<>(-1, -1);
+                    } else {
+                        airlineFlights.add(flight);
                     }
                 }
             }
@@ -147,11 +154,12 @@ public class Airport {
             return new Pair<>(-1, -1);
         }
 
-        return targetSector.assignCounters(targetAirline, flightCodes, count);
+
+        return targetSector.assignCounters(targetAirline, airlineFlights, count);
     }
 
     public int getPendingAhead(String sector, List<String> flightCodes, String airline, int count) {
-        return this.sectors.get(this.sectors.indexOf(new Sector(sector))).getPendingAhead(new Assignment(airline, flightCodes, count));
+        return this.sectors.get(this.sectors.indexOf(new Sector(sector))).getPendingAhead(new Assignment(airline, flightCodes.stream().map(Flight::new).toList(), count));
     }
 
     public Optional<Assignment>  freeCounters(String sector, int from, String airline) {
@@ -180,5 +188,19 @@ public class Airport {
             }
         }
         return targetSector;
+    }
+
+    public List<CounterInfoModel> getCounterInfo(String sectorName, Pair<Integer, Integer> interval) {
+        Sector targetSector = getSectorByName(sectorName);
+        if (targetSector == null || interval.getLeft() > interval.getRight()) {
+            return null;            //todo deberia fallar!
+        }
+
+        if (targetSector.getAssignedCounters().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return targetSector.getCounterInfo(interval);
+
     }
 }

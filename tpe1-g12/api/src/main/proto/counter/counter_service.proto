@@ -8,7 +8,7 @@ import "google/protobuf/empty.proto";
 
 service CounterService {
   rpc ListSectors(google.protobuf.Empty) returns (ListSectorsResponse);
-  rpc GetCounterInfo(CounterInfo) returns (CounterResponse);
+  rpc GetCounterInfo(CounterInfo) returns (CounterInfoResponse);
   rpc AssignCounters(AssignCounterInfo) returns (AssignCounterResponse);
   rpc FreeCounters(FreeCounterInfo) returns (FreeCounterResponse);
   rpc CheckInCounters(CheckInInfo) returns ( ListCheckInResponse);
@@ -37,6 +37,7 @@ message CounterInfo {
   string name = 1;
   Interval interval = 2;
 }
+
 
 message CounterResponse {
   Interval interval = 1;

@@ -5,10 +5,10 @@ import java.util.Objects;
 
 public class Assignment {
     private final String airline;
-    private final List<String> flightCodes;
+    private final List<Flight> flightCodes;
     private final int cant;
 
-    public Assignment(String airline, List<String> flightCodes, int cant) {
+    public Assignment(String airline, List<Flight> flightCodes, int cant) {
         this.airline = airline;
         this.flightCodes = flightCodes;
         this.cant = cant;
@@ -18,7 +18,7 @@ public class Assignment {
         return airline;
     }
 
-    public List<String> getFlightCodes() {
+    public List<Flight> getFlightCodes() {
         return flightCodes;
     }
 

@@ -69,6 +69,45 @@ public class CounterClient {
                 latch.countDown();
             }
         }, sectorsExecutor);
+
+        //2.2
+        ListenableFuture<CounterInfoResponse> counterInfoResponse = stub.getCounterInfo(CounterInfo.newBuilder().setName("A").setInterval(Interval.newBuilder().setLowerBound(5).setUpperBound(7).build()).build());
+        ExecutorService counterInfoExecutor = Executors.newCachedThreadPool();
+        Futures.addCallback(counterInfoResponse, new FutureCallback<>() {
+            @Override
+            public void onSuccess(CounterInfoResponse counterInfoResponse) {
+                StringBuilder sb = new StringBuilder();
+
+                sb.append("Counters\tAirline\tFlights\tPeople\n");
+                sb.append("##########################################################\n");
+                for (CounterResponse counterResponse : counterInfoResponse.getCountersList()) {
+                    sb.append("(").append(counterResponse.getInterval().getLowerBound()).append("-").append(counterResponse.getInterval().getUpperBound()).append(")\t");
+                    sb.append(counterResponse.getAirline()).append("\t");
+                    sb.append("\t");
+
+                    for (String flight : counterResponse.getFlightCodeList()) {
+                        sb.append(flight);
+                        sb.append("|");
+                    }
+
+//                    sb.deleteCharAt(sb.lastIndexOf("|"));
+
+                    sb.append("\t");
+                    sb.append(counterResponse.getPassengers()).append("\n");
+                }
+
+                System.out.println(sb);
+                latch.countDown();
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                System.out.println("fallo");
+                System.out.println(throwable.getMessage());
+                latch.countDown();
+            }
+        }, counterInfoExecutor);
+
         //2.3
         List<String> flightCodes = new ArrayList<>();
         flightCodes.add("AA123");
