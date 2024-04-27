@@ -179,6 +179,7 @@ public class Sector  {
         Assignment previous = null;
         int emptyLowerBound = -1;
         int emptyUpperBound = -1;
+        int nextEmptyLowerBound = -1;
 
         for (Map.Entry<Integer, Optional<Assignment>> entry : this.assignedCounters.entrySet()) {
             isWithinInterval = entry.getKey() >= interval.getLeft() && entry.getKey() <= interval.getRight();
@@ -192,7 +193,11 @@ public class Sector  {
             }
 
             if (isWithinInterval && entry.getValue().isEmpty() && emptyLowerBound != -1) {
-                emptyUpperBound = entry.getKey();
+                if (entry.getKey() != emptyUpperBound + 1) {
+                    nextEmptyLowerBound = entry.getKey();
+                } else {
+                    emptyUpperBound = entry.getKey();
+                }
             }
 
             if (isWithinInterval && entry.getValue().isEmpty() && emptyLowerBound == -1) {
@@ -200,10 +205,11 @@ public class Sector  {
                 emptyUpperBound = entry.getKey();
             }
 
-            if (entry.getValue().isPresent() && emptyLowerBound != -1) {
+            if (entry.getValue().isPresent() && emptyLowerBound != -1 || nextEmptyLowerBound != -1) {
                 toReturn.add(new CounterInfoModel(new Pair<>(emptyLowerBound, emptyUpperBound), "", Collections.emptyList(), 0));
-                emptyLowerBound = -1;
-                emptyUpperBound = -1;
+                emptyLowerBound = nextEmptyLowerBound;
+                emptyUpperBound = nextEmptyLowerBound;
+                nextEmptyLowerBound = -1;
             }
         }
 
