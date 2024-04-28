@@ -17,8 +17,7 @@ message Interval {
 }
 
 message ListCounterResponse {
-  repeated string sectors = 1;
-  repeated CounterResponse counterResponse = 2;
+  repeated CounterResponse counterResponse = 1;
 }
 
 message ListCheckIn {

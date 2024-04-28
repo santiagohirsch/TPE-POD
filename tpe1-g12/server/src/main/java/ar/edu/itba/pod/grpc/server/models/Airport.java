@@ -1,5 +1,6 @@
 package ar.edu.itba.pod.grpc.server.models;
 
+import ar.edu.itba.pod.grpc.counter.CounterInfo;
 import ar.edu.itba.pod.grpc.counter.CounterInfoResponse;
 import ar.edu.itba.pod.grpc.query.CounterResponse;
 import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
@@ -323,71 +324,25 @@ public class Airport {
 
     }
 
-    public List<CounterInfoModel> queryCounters(String sectorName) {
+    public Map<String, List<CounterInfoModel>> queryCounters(String sectorName) {
         List<CounterInfoModel> counterInfoModelList = new ArrayList<>();
-        int first = 0;
-        int last = 0;
-        boolean finished = false;
-        boolean filtered = false;
-        for (Sector sector : sectors) {
-            if(sector.getName().equals(sectorName)) {
-                counterInfoModelList.clear();
-                filtered = true;
-            }
-            int i = 0;
-            int size = 0;
-            for (Map.Entry<Integer, Optional<Assignment>> entry : sector.getAssignedCounters().entrySet()) {
-                size++;
-                if (entry.getValue().isPresent()) {
-                    CounterInfoModel counterInfoModel = new CounterInfoModel(new Pair<>(entry.getKey(), entry.getKey() + entry.getValue().get().getCant() - 1), entry.getValue().get().getAirline(), entry.getValue().get().getStringFlightCodes(), 0, sectorName);
+        Map<String, List<CounterInfoModel>> counterInfo = new HashMap<>();
+        Pair<Integer, Integer> interval = new Pair<>(-1, -1);
 
-                    if (i == 0 || (i >1 && counterInfoModelList.get(i).equals(counterInfoModelList.get(i - 1)) )) {
-                        counterInfoModelList.add(counterInfoModel);
-                    }
-                    i++;
-                }
-//                else {
-//                    if(first == 0 ) {
-//                        first = entry.getKey();
-//                        last = first;
-//                        System.out.println("first: ");
-//                        System.out.println(first);
-//                    }
-//
-//                    else if(last + 1 == entry.getKey()) {
-//                        last = entry.getKey();
-//                        System.out.println("intermedio: ");
-//                        System.out.println(last);
-//                    }
-//                    else  {
-//                        first = entry.getKey();
-//                        last = first;
-//                        finished = true;
-//                        System.out.println("last: ");
-//                        System.out.println(last);
-//                    }
-                    //CounterInfoModel counterInfoModel = new CounterInfoModel(new Pair<>(entry.getKey(), entry.getKey()), "", Collections.emptyList(), 0, sectorName);
-
-//                    int j = i;
-//                    while (j < sector.getAssignedCounters().entrySet().size()  && sector.getAssignedCounters().get(j)!= null && sector.getAssignedCounters().get(j).isEmpty()) {
-//                        j++;
-//                    }
-//                    CounterInfoModel counterInfoModel = new CounterInfoModel(new Pair<>(entry.getKey(), entry.getKey() + j - 1), "", Collections.emptyList(), 0, sectorName);
-//                    counterInfoModelList.add(counterInfoModel);
-//                    i++;
-//                }
-//                if(finished || size == sector.getAssignedCounters().entrySet().size()) {
-//                    CounterInfoModel counterInfoModel = new CounterInfoModel(new Pair<>(first, last), "", Collections.emptyList(), 0, sectorName);
-//                    counterInfoModelList.add(counterInfoModel);
-//                    finished = false;
-//                }
+        if(sectorName.isEmpty()){
+            for(Sector sector : sectors){
+                counterInfo.putIfAbsent(sector.getName(), sector.getCounterInfo(interval));
             }
-            if ( filtered ) {
-                break;
-            }
-
         }
-        return counterInfoModelList;
+        else{
+            counterInfoModelList = getCounterInfo(sectorName, interval);
+            if(counterInfoModelList == null){
+                counterInfoModelList = Collections.emptyList();
+            }
+            counterInfo.putIfAbsent(sectorName, counterInfoModelList);
+        }
+
+        return counterInfo;
     }
 
     public List<CheckInResponseModel> checkInCounters(String sectorName, int from, String airline) {

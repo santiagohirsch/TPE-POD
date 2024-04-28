@@ -1,5 +1,6 @@
 package ar.edu.itba.pod.grpc.server.servants;
 
+import ar.edu.itba.pod.grpc.counter.CounterInfoResponse;
 import ar.edu.itba.pod.grpc.query.*;
 import ar.edu.itba.pod.grpc.server.models.Airport;
 import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
@@ -21,31 +22,26 @@ public class QueryServant extends QueryServiceGrpc.QueryServiceImplBase {
     public void queryCounters(Filters request, StreamObserver<ListCounterResponse> responseObserver) {
 
         String sector = request.getSectorName();
-        List<CounterInfoModel> response = this.airport.queryCounters(sector);
-        List<CounterResponse> counterResponses = new ArrayList<>();
-        List<String> sectors = new ArrayList<>();
-        for(CounterInfoModel counter : response) {
-            counterResponses.add(CounterResponse.newBuilder()
-                    .setAirline(counter.getAirline())
-                    .setInterval(
-                        Interval.newBuilder()
-                                .setLowerBound(counter.getInterval().getLeft())
-                                .setUpperBound(counter.getInterval().getRight())
+        Map<String, List<CounterInfoModel>> response = this.airport.queryCounters(sector);
+        ListCounterResponse.Builder builder = ListCounterResponse.newBuilder();
+
+        for(Map.Entry<String, List<CounterInfoModel>> entry : response.entrySet()) {
+            for(CounterInfoModel counterInfoModel : entry.getValue()) {
+                builder.addCounterResponse(CounterResponse.newBuilder()
+                        .setInterval(Interval.newBuilder()
+                                .setLowerBound(counterInfoModel.getInterval().getLeft())
+                                .setUpperBound(counterInfoModel.getInterval().getRight())
                                 .build()
-                    )
-                    .addAllFlightCode(counter.getFlightCodes())
-                    .setPassengers(0) //todo
-                    .setSectorName(counter.getSector())
-                    .build());
-            if(!sectors.contains(counter.getSector())) {
-                sectors.add(counter.getSector());
+                        )
+                        .setAirline(counterInfoModel.getAirline())
+                        .addAllFlightCode(counterInfoModel.getFlightCodes())
+                        .setPassengers(counterInfoModel.getPeople())
+                        .setSectorName(entry.getKey())
+                        .build()
+                );
             }
         }
-        ListCounterResponse listCounterResponse = ListCounterResponse.newBuilder()
-                .addAllCounterResponse(counterResponses)
-                .addAllSectors(sectors)
-                .build();
-        responseObserver.onNext(listCounterResponse);
+        responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
     }
 

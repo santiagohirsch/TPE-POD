@@ -182,7 +182,7 @@ public class Sector  {
         int nextEmptyLowerBound = -1;
 
         for (Map.Entry<Integer, Optional<Assignment>> entry : this.assignedCounters.entrySet()) {
-            isWithinInterval = entry.getKey() >= interval.getLeft() && entry.getKey() <= interval.getRight();
+            isWithinInterval = interval.getLeft() == -1 ? true :  entry.getKey() >= interval.getLeft() && entry.getKey() <= interval.getRight();
 
             if (isWithinInterval && entry.getValue().isPresent() && !entry.getValue().get().equals(previous)) {
                 previous = entry.getValue().get();
