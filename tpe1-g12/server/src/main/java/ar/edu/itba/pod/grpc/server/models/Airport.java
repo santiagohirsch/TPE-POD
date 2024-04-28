@@ -262,11 +262,14 @@ public class Airport {
         for (Airline a : this.airlines) {
 
 
+            //TODO EXCEPTIONS!
             for (Flight flight : a.getFlights()) {
                 if (flightCodes.contains(flight.getFlightCode())) {
                     if (!a.getName().equals(airline)) {
                         return new Pair<>(-1, -1);
                     } else if (flight.getBookings().isEmpty()) {
+                        return new Pair<>(-1, -1);
+                    } else if(flight.isAlreadyCheckedIn()) {
                         return new Pair<>(-1, -1);
                     } else {
                         airlineFlights.add(flight);

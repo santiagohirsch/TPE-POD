@@ -72,6 +72,7 @@ public class Sector  {
             if (entry.getValue().isPresent()) {
                 for (Flight flightCode : airlineFlights) {
                     if (entry.getValue().get().getFlightCodes().contains(flightCode)) {
+                        //TODO exception
                         return new Pair<>(-1, -1); // Flight code already assigned
                     }
                 }
@@ -86,6 +87,8 @@ public class Sector  {
                 }
             }
         }
+
+
 
         // Create the assignment
         Assignment newAssignment = new Assignment(airline, airlineFlights, count);
@@ -159,7 +162,7 @@ public class Sector  {
         } else {
             return toReturn;
         }
-
+        assignedCounters.get(toRemove).get().getFlightCodes().forEach((flight -> flight.setAlreadyCheckedIn(true)));
         while (assignedCounters.containsKey(toRemove) && assignedCounters.get(toRemove).isPresent() && assignedCounters.get(toRemove).get().equals(toReturn.get())){
 
             assignedCounters.replace(toRemove, Optional.empty());
