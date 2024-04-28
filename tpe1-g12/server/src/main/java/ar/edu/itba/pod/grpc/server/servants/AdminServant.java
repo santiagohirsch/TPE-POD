@@ -2,6 +2,7 @@ package ar.edu.itba.pod.grpc.server.servants;
 
 import ar.edu.itba.pod.grpc.admin.*;
 import ar.edu.itba.pod.grpc.server.models.Airport;
+import ar.edu.itba.pod.grpc.server.models.NotificationCenter;
 import ar.edu.itba.pod.grpc.server.models.Sector;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 import com.google.protobuf.BoolValue;
@@ -11,9 +12,11 @@ import java.util.Optional;
 
 public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
     private Airport airport;
+    private NotificationCenter notificationCenter;
 
-    public AdminServant(Airport airport) {
+    public AdminServant(Airport airport, NotificationCenter notificationCenter) {
         this.airport = airport;
+        this.notificationCenter = notificationCenter;
     }
 
     @Override

@@ -4,6 +4,7 @@ import ar.edu.itba.pod.grpc.counter.*;
 import ar.edu.itba.pod.grpc.server.models.Airport;
 import ar.edu.itba.pod.grpc.server.models.Assignment;
 import ar.edu.itba.pod.grpc.server.models.Flight;
+import ar.edu.itba.pod.grpc.server.models.NotificationCenter;
 import ar.edu.itba.pod.grpc.server.utils.CheckInResponseModel;
 import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
@@ -14,9 +15,11 @@ import java.util.*;
 
 public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
     private Airport airport;
+    private NotificationCenter notificationCenter;
 
-    public CounterServant(Airport airport) {
+    public CounterServant(Airport airport, NotificationCenter notificationCenter) {
         this.airport = airport;
+        this.notificationCenter= notificationCenter;
     }
 
     @Override
@@ -82,6 +85,9 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
         Pair<Integer, Integer> assignedInterval = this.airport.assignCounters(sector, flightCodes, airline, count);
         if (assignedInterval.getLeft() == 0) {
             pendingAhead = this.airport.getPendingAhead(sector, flightCodes, airline, count);
+            this.notificationCenter.notifyPending(airline, count, sector, flightCodes, pendingAhead);
+        } else if (assignedInterval.getLeft() != -1) {
+            this.notificationCenter.notifyAssignCounters(airline, count, assignedInterval, sector, flightCodes);
         }
         AssignCounterResponse response = AssignCounterResponse.newBuilder()
                 .setAssignedInterval(

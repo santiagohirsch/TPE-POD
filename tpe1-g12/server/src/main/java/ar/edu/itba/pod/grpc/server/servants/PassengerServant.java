@@ -2,6 +2,7 @@ package ar.edu.itba.pod.grpc.server.servants;
 
 import ar.edu.itba.pod.grpc.passenger.*;
 import ar.edu.itba.pod.grpc.server.models.Airport;
+import ar.edu.itba.pod.grpc.server.models.NotificationCenter;
 import ar.edu.itba.pod.grpc.server.models.Sector;
 import ar.edu.itba.pod.grpc.server.utils.CheckInModel;
 import ar.edu.itba.pod.grpc.server.utils.CheckInStatusModel;
@@ -12,8 +13,12 @@ import java.util.Optional;
 
 public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplBase {
     private Airport airport;
+    private NotificationCenter notificationCenter;
 
-    public PassengerServant(Airport airport) { this.airport = airport; }
+    public PassengerServant(Airport airport, NotificationCenter notificationCenter) {
+        this.airport = airport;
+        this.notificationCenter=notificationCenter;
+    }
 
     /*
     return Optional.of(CounterInfo.newBuilder().setAirline(counter.getValue().get().getName())

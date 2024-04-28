@@ -1,6 +1,8 @@
 package ar.edu.itba.pod.grpc.server;
 
 import ar.edu.itba.pod.grpc.server.models.Airport;
+import ar.edu.itba.pod.grpc.server.models.NotificationCenter;
+import ar.edu.itba.pod.grpc.server.models.Sector;
 import ar.edu.itba.pod.grpc.server.servants.AdminServant;
 import ar.edu.itba.pod.grpc.server.servants.PassengerServant;
 import ar.edu.itba.pod.grpc.server.servants.CounterServant;
@@ -17,12 +19,13 @@ public class Server {
     public static void main(String[] args) throws InterruptedException, IOException {
         logger.info(" Server Starting ...");
         Airport airport = new Airport();
+        NotificationCenter notificationCenter = new NotificationCenter();
         int port = 50052;
         io.grpc.Server server = ServerBuilder.forPort(port)
-                .addService(new AdminServant(airport))
-                .addService(new EventServant(airport))
-                .addService(new PassengerServant(airport))
-                .addService(new CounterServant(airport))
+                .addService(new AdminServant(airport, notificationCenter))
+                .addService(new EventServant(airport, notificationCenter))
+                .addService(new PassengerServant(airport, notificationCenter))
+                .addService(new CounterServant(airport, notificationCenter))
                 .build();
         server.start();
         logger.info("Server started, listening on " + port);

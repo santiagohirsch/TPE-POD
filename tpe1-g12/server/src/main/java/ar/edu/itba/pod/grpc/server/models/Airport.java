@@ -33,6 +33,13 @@ public class Airport {
         this.sectors = sectors;
     }
 
+    public void checkIfAirlineExists(String airline) {
+        if(!this.airlines.contains(new Airline(airline))){
+            //TODO excepciones
+            throw new IllegalArgumentException("no existe la aerolinea");
+        }
+    }
+
     public boolean addSector(Sector sector) {
         if (sectors.contains(sector) ) {
             return false;
@@ -234,25 +241,7 @@ public class Airport {
         return Optional.of(countersPerSectors);
     }
 
-    public Empty register(RegisterInfo registerInfo) {
-        int index = airlines.indexOf(new Airline(registerInfo.getAirline()));
-        if(index >= 0) {
-            Airline airline = airlines.get(index);
-            airline.setNotificated(true);
-        }
-        return Empty.newBuilder().build();
-    }
 
-    public boolean unRegister(RegisterInfo registerInfo) {
-        int index = airlines.indexOf(new Airline(registerInfo.getAirline()));
-        if(index >= 0) {
-            Airline airline = airlines.get(index);
-            airline.setNotificated(false);
-            return true;
-        }
-
-        return false;
-    }
 
     public Pair<Integer, Integer> assignCounters(String sector, List<String> flightCodes, String airline, int count) {
         // (-1,-1) = error | (0, 0) = pending
