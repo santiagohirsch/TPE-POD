@@ -17,7 +17,6 @@ public class Assignment {
 
     private Queue<String> checkInQueue;
 
-
     private List<Pair<String, Integer>> checkedIn;
 
 

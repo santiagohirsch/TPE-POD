@@ -1,6 +1,7 @@
 package ar.edu.itba.pod.grpc.client;
 
 import ar.edu.itba.pod.grpc.client.utils.callbacks.Passenger.*;
+import ar.edu.itba.pod.grpc.counter.SectorData;
 import ar.edu.itba.pod.grpc.passenger.*;
 import ar.edu.itba.pod.grpc.passenger.CounterInfo;
 import ar.edu.itba.pod.grpc.passenger.Interval;
@@ -30,59 +31,61 @@ public class PassengerClient {
     public static void main(String[] args) throws InterruptedException {
         logger.info("tpe1-g12 Client Starting ...");
         logger.info("grpc-com-patterns Client Starting ...");
-        Map<String, String> argsMap = parseArgs(args);
+//        Map<String, String> argsMap = parseArgs(args);
+//
+//        String serverAddress = getArg(argsMap, SERVER_ADDRESS);
+//        String action = getArg(argsMap, ACTION);
+//
+//        checkNullArgument(serverAddress);
+//        checkNullArgument(action);
 
-        String serverAddress = getArg(argsMap, SERVER_ADDRESS);
-        String action = getArg(argsMap, ACTION);
+//        ManagedChannel channel = ManagedChannelBuilder.forTarget(serverAddress)
+        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50052)
 
-        checkNullArgument(serverAddress);
-        checkNullArgument(action);
-
-        ManagedChannel channel = ManagedChannelBuilder.forTarget(serverAddress)
                 .usePlaintext()
                 .build();
 
         PassengerServiceGrpc.PassengerServiceFutureStub stub = PassengerServiceGrpc.newFutureStub(channel);
 
-        switch (action){
-            case FETCH_COUNTER -> {
-                String bookingCode = getArg(argsMap,BOOKING);
-                Booking request = Booking.newBuilder().setBookingCode(bookingCode).build();
-                ListenableFuture<CounterInfo> response = stub.fetchCounter(request);
-                Futures.addCallback(response, new FetchCounterCallback(logger, latch), Executors.newCachedThreadPool());
-            }
-            case PASSENGER_CHECKIN -> {
-                String bookingCode = getArg(argsMap,BOOKING);
-                int counter = Integer.parseInt(getArg(argsMap,COUNTER));
-                String sectorName = getArg(argsMap,SECTOR);
-                CheckInInfo checkInRequest = CheckInInfo.newBuilder()
-                        .setBooking(Booking.newBuilder().setBookingCode(bookingCode).build())
-                        .setCounter(counter)
-                        .setSectorName(sectorName)
-                        .build();
-                ListenableFuture<CheckInResponse> checkInResponse = stub.checkIn(checkInRequest);
-                Futures.addCallback(checkInResponse, new PassengerCheckinCallback(logger, latch), Executors.newCachedThreadPool());
-            }
-            case PASSENGER_STATUS -> {
-                String bookingCode = getArg(argsMap,BOOKING);
-                Booking statusRequest = Booking.newBuilder().setBookingCode(bookingCode).build();
-                ListenableFuture<StatusResponse> statusResponse = stub.status(statusRequest);
-                Futures.addCallback(statusResponse, new PassengerStatusCallback(logger, latch), Executors.newCachedThreadPool());
-            }
-            default ->{System.exit(1);}
-        }
+//        switch (action){
+//            case FETCH_COUNTER -> {
+//                String bookingCode = getArg(argsMap,BOOKING);
+//                Booking request = Booking.newBuilder().setBookingCode(bookingCode).build();
+//                ListenableFuture<CounterInfo> response = stub.fetchCounter(request);
+//                Futures.addCallback(response, new FetchCounterCallback(logger, latch), Executors.newCachedThreadPool());
+//            }
+//            case PASSENGER_CHECKIN -> {
+//                String bookingCode = getArg(argsMap,BOOKING);
+//                int counter = Integer.parseInt(getArg(argsMap,COUNTER));
+//                String sectorName = getArg(argsMap,SECTOR);
+//                CheckInInfo checkInRequest = CheckInInfo.newBuilder()
+//                        .setBooking(Booking.newBuilder().setBookingCode(bookingCode).build())
+//                        .setCounter(counter)
+//                        .setSectorName(sectorName)
+//                        .build();
+//                ListenableFuture<CheckInResponse> checkInResponse = stub.checkIn(checkInRequest);
+//                Futures.addCallback(checkInResponse, new PassengerCheckinCallback(logger, latch), Executors.newCachedThreadPool());
+//            }
+//            case PASSENGER_STATUS -> {
+//                String bookingCode = getArg(argsMap,BOOKING);
+//                Booking statusRequest = Booking.newBuilder().setBookingCode(bookingCode).build();
+//                ListenableFuture<StatusResponse> statusResponse = stub.status(statusRequest);
+//                Futures.addCallback(statusResponse, new PassengerStatusCallback(logger, latch), Executors.newCachedThreadPool());
+//            }
+//            default ->{System.exit(1);}
+//        }
 
 //        try {
 //
-//            CountDownLatch latch = new CountDownLatch(1);
+            CountDownLatch latch = new CountDownLatch(1);
 //            PassengerServiceGrpc.PassengerServiceFutureStub stub = PassengerServiceGrpc.newFutureStub(channel);
-//
-//            //CounterInfo request = CounterInfo.newBuilder().setCounters(Interval.newBuilder().setLowerBound(1).setUpperBound(3)).setSector("A").setAirline("Americas").setQueueLen(6).setFlightCode("AA123").build();
-//            Booking request = Booking.newBuilder().setBookingCode("YZA456").build();
+
+//            CounterInfo request = CounterInfo.newBuilder().setCounters(Interval.newBuilder().setLowerBound(1).setUpperBound(3)).setSector("A").setAirline("Americas").setQueueLen(6).setFlightCode("AA123").build();
+//            Booking request = Booking.newBuilder().setBookingCode("XYZ240").build();
 //            //YZA456
 //            //XYZ234
 //            ListenableFuture<CounterInfo> response = stub.fetchCounter(request);
-//            //SectorData request = SectorData.newBuilder().setName("A").build();
+////            SectorData request = SectorData.newBuilder().setName("A").build();
 //            //ListenableFuture<BoolValue> response = stub.addSector(request);
 //
 //            ExecutorService executor = Executors.newCachedThreadPool();
@@ -116,37 +119,37 @@ public class PassengerClient {
 ////             -------------------------------------------------------------------------------------------------------------------------------------------
 //
 //
-//
-//            ExecutorService checkInExecutor = Executors.newCachedThreadPool();
-//            CheckInInfo checkInRequest = CheckInInfo.newBuilder()
-//                    .setBooking(Booking.newBuilder().setBookingCode("XYZ240").build())
-//                    .setCounter(5)
-//                    .setSectorName("A")
-//                    .build();
-//            ListenableFuture<CheckInResponse> checkInresponse = stub.checkIn(checkInRequest);
-//            ExecutorService CheckInexecutor = Executors.newCachedThreadPool();
-//            Futures.addCallback(checkInresponse, new FutureCallback<>(
-//            ) {
-//
-//                @Override
-//                public void onSuccess(CheckInResponse checkInResponse) {
-//                    String out;
-//
-//                    out = "Booking " + checkInResponse.getBooking().getBookingCode() + " for flight " + checkInResponse.getCounterInfo().getFlightCode() + " is now waiting to check-in on counters (" + checkInResponse.getCounterInfo().getCounters().getLowerBound() + "-" + checkInResponse.getCounterInfo().getCounters().getUpperBound() + ") in Sector " + checkInResponse.getCounterInfo().getSector() + " with " + checkInResponse.getCounterInfo().getQueueLen() + " people in line";
-//                    //Booking ABC123 for flight AA123 from AmericanAirlines is now waiting to check-in on counters (3-4) in Sector C with 6 people in line
-//
-//                    System.out.println(out);
-//                    latch.countDown();
-//                }
-//
-//                @Override
-//                public void onFailure(Throwable throwable) {
-//                    //System.out.println(response);
-//                    System.out.println("fallo");
-//                    latch.countDown();
-//                }
-//            }, checkInExecutor);
-//
+////
+            ExecutorService checkInExecutor = Executors.newCachedThreadPool();
+            CheckInInfo checkInRequest = CheckInInfo.newBuilder()
+                    .setBooking(Booking.newBuilder().setBookingCode("XYZ234").build())
+                    .setCounter(1)
+                    .setSectorName("A")
+                    .build();
+            ListenableFuture<CheckInResponse> checkInresponse = stub.checkIn(checkInRequest);
+            ExecutorService CheckInexecutor = Executors.newCachedThreadPool();
+            Futures.addCallback(checkInresponse, new FutureCallback<>(
+            ) {
+
+                @Override
+                public void onSuccess(CheckInResponse checkInResponse) {
+                    String out;
+
+                    out = "Booking " + checkInResponse.getBooking().getBookingCode() + " for flight " + checkInResponse.getCounterInfo().getFlightCode() + " is now waiting to check-in on counters (" + checkInResponse.getCounterInfo().getCounters().getLowerBound() + "-" + checkInResponse.getCounterInfo().getCounters().getUpperBound() + ") in Sector " + checkInResponse.getCounterInfo().getSector() + " with " + checkInResponse.getCounterInfo().getQueueLen() + " people in line";
+                    //Booking ABC123 for flight AA123 from AmericanAirlines is now waiting to check-in on counters (3-4) in Sector C with 6 people in line
+
+                    System.out.println(out);
+                    latch.countDown();
+                }
+
+                @Override
+                public void onFailure(Throwable throwable) {
+                    //System.out.println(response);
+                    System.out.println("fallo");
+                    latch.countDown();
+                }
+            }, checkInExecutor);
+
 //
 //
 //            // -------------------------------------------------------------------------------------------------------------------------------------------

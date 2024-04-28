@@ -3,6 +3,7 @@ package ar.edu.itba.pod.grpc.server.servants;
 import ar.edu.itba.pod.grpc.counter.CounterInfoResponse;
 import ar.edu.itba.pod.grpc.query.*;
 import ar.edu.itba.pod.grpc.server.models.Airport;
+import ar.edu.itba.pod.grpc.server.utils.CheckInData;
 import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 import io.grpc.stub.StreamObserver;
@@ -47,6 +48,21 @@ public class QueryServant extends QueryServiceGrpc.QueryServiceImplBase {
 
     @Override
     public void queryCheckIns(Filters request, StreamObserver<ListCheckIn> responseObserver) {
-        super.queryCheckIns(request, responseObserver);
+        String sector = request.getSectorName();
+        String airline = request.getAirline();
+        List<CheckInData> checkedInList = this.airport.queryCheckIns(sector,airline);
+        ListCheckIn.Builder builder = ListCheckIn.newBuilder();
+        for (CheckInData checkInData : checkedInList) {
+            builder.addCheckIn(CheckIn.newBuilder()
+                    .setAirline(checkInData.getAirline())
+                    .setSectorName(checkInData.getSector())
+                    .setFlightCode(checkInData.getFlightCode())
+                    .setBookingCode(checkInData.getBookingCode())
+                    .setCounter(checkInData.getCounter())
+                    .build()
+            );
+        }
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
     }
 }

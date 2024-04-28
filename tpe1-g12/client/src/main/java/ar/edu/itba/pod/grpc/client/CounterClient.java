@@ -243,68 +243,68 @@ public class CounterClient {
 //        }, counterInfoExecutor);
 //
 //        //2.3
-        List<String> flightCodes = new ArrayList<>();
-        flightCodes.add("AA123");
-        flightCodes.add("AA234");
-        AssignCounterInfo assignCounterInfo = AssignCounterInfo.newBuilder()
-                .setSector(SectorData.newBuilder().setName("A"))
-                .setAirline("AmericanAirlines")
-                .addAllFlightCodes(flightCodes)
-                .setCount(2)
-                .build();
-        ListenableFuture<AssignCounterResponse> assignCounterResponse = stub.assignCounters(assignCounterInfo);
-        ExecutorService assignCounterExecutor = Executors.newCachedThreadPool();
-        Futures.addCallback(assignCounterResponse, new FutureCallback<>() {
-            @Override
-            public void onSuccess(AssignCounterResponse assignCounterResponse) {
-                StringBuilder sb = new StringBuilder();
-                if (assignCounterResponse.getAssignedInterval().getLowerBound() == -1) {
-                    sb.append("The assignation could not be done");
-                    System.out.println(sb);
-                    latch.countDown();
-                } else if (assignCounterResponse.getAssignedInterval().getLowerBound() == 0) {
-                    sb.append(assignCounterResponse.getInfo().getCount())
-                            .append(" counters")
-                            .append(" in Sector ")
-                            .append(assignCounterResponse.getInfo().getSector().getName())
-                            .append(" is pending with ")
-                            .append(assignCounterResponse.getPendingAhead())
-                            .append(" other pendings ahead");
-                    System.out.println(sb);
-                    latch.countDown();
-                } else {
-                    sb.append(assignCounterResponse.getInfo().getCount())
-                            .append(" counters ")
-                            .append("(")
-                            .append(assignCounterResponse.getAssignedInterval().getLowerBound())
-                            .append("-")
-                            .append(assignCounterResponse.getAssignedInterval().getUpperBound())
-                            .append(")")
-                            .append(" in Sector ")
-                            .append(assignCounterResponse.getInfo().getSector().getName())
-                            .append(" are now checking in passengers from ")
-                            .append(assignCounterResponse.getInfo().getAirline())
-                            .append(" ");
-                    Iterator<String> it = assignCounterResponse.getInfo().getFlightCodesList().stream().toList().iterator();
-                    while (it.hasNext()) {
-                        sb.append(it.next());
-                        if (it.hasNext()) {
-                            sb.append("|");
-                        }
-                    }
-                    sb.append(" flights");
-                    System.out.println(sb);
-                    latch.countDown();
-                }
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                System.out.println("fallo");
-                System.out.println(throwable.getMessage());
-                latch.countDown();
-            }
-        }, assignCounterExecutor);
+//        List<String> flightCodes = new ArrayList<>();
+//        flightCodes.add("AA123");
+//        flightCodes.add("AA234");
+//        AssignCounterInfo assignCounterInfo = AssignCounterInfo.newBuilder()
+//                .setSector(SectorData.newBuilder().setName("A"))
+//                .setAirline("AmericanAirlines")
+//                .addAllFlightCodes(flightCodes)
+//                .setCount(2)
+//                .build();
+//        ListenableFuture<AssignCounterResponse> assignCounterResponse = stub.assignCounters(assignCounterInfo);
+//        ExecutorService assignCounterExecutor = Executors.newCachedThreadPool();
+//        Futures.addCallback(assignCounterResponse, new FutureCallback<>() {
+//            @Override
+//            public void onSuccess(AssignCounterResponse assignCounterResponse) {
+//                StringBuilder sb = new StringBuilder();
+//                if (assignCounterResponse.getAssignedInterval().getLowerBound() == -1) {
+//                    sb.append("The assignation could not be done");
+//                    System.out.println(sb);
+//                    latch.countDown();
+//                } else if (assignCounterResponse.getAssignedInterval().getLowerBound() == 0) {
+//                    sb.append(assignCounterResponse.getInfo().getCount())
+//                            .append(" counters")
+//                            .append(" in Sector ")
+//                            .append(assignCounterResponse.getInfo().getSector().getName())
+//                            .append(" is pending with ")
+//                            .append(assignCounterResponse.getPendingAhead())
+//                            .append(" other pendings ahead");
+//                    System.out.println(sb);
+//                    latch.countDown();
+//                } else {
+//                    sb.append(assignCounterResponse.getInfo().getCount())
+//                            .append(" counters ")
+//                            .append("(")
+//                            .append(assignCounterResponse.getAssignedInterval().getLowerBound())
+//                            .append("-")
+//                            .append(assignCounterResponse.getAssignedInterval().getUpperBound())
+//                            .append(")")
+//                            .append(" in Sector ")
+//                            .append(assignCounterResponse.getInfo().getSector().getName())
+//                            .append(" are now checking in passengers from ")
+//                            .append(assignCounterResponse.getInfo().getAirline())
+//                            .append(" ");
+//                    Iterator<String> it = assignCounterResponse.getInfo().getFlightCodesList().stream().toList().iterator();
+//                    while (it.hasNext()) {
+//                        sb.append(it.next());
+//                        if (it.hasNext()) {
+//                            sb.append("|");
+//                        }
+//                    }
+//                    sb.append(" flights");
+//                    System.out.println(sb);
+//                    latch.countDown();
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable throwable) {
+//                System.out.println("fallo");
+//                System.out.println(throwable.getMessage());
+//                latch.countDown();
+//            }
+//        }, assignCounterExecutor);
 
 //        //2.4
 //
@@ -435,32 +435,32 @@ public class CounterClient {
 //        },freeCountersExecutor);
 //
 //        //2.5
-//        CheckInInfo checkInInfo = CheckInInfo.newBuilder().setAirline("AmericanAirlines").setSector(SectorData.newBuilder().setName("A").build()).setFrom(5).build();
-//        ListenableFuture<ListCheckInResponse> listCheckInResponse = stub.checkInCounters(checkInInfo);
-//        ExecutorService listCheckInExecutor = Executors.newCachedThreadPool();
-//
-//        Futures.addCallback(listCheckInResponse, new FutureCallback<ListCheckInResponse>() {
-//            @Override
-//            public void onSuccess(ListCheckInResponse listCheckInResponse) {
-//                StringBuilder sb = new StringBuilder();
-//                for (CheckInResponse checkInResponse : listCheckInResponse.getInfoList()) {
-//                    if (checkInResponse.getFlightCode().isEmpty()){
-//                        sb.append("Counter " + checkInResponse.getCounter() + " is idle\n");
-//                    } else {
-//                        sb.append("Check-in successful of " + checkInResponse.getCheckinCode() + " for flight " + checkInResponse.getFlightCode() + " at counter " + checkInResponse.getCounter() + "\n");
-//                    }
-//                }
-//                System.out.println(sb);
-//                latch.countDown();
-//            }
-//
-//            @Override
-//            public void onFailure(Throwable throwable) {
-//                System.out.println(throwable.getMessage());
-//                latch.countDown();
-//            }
-//        }, listCheckInExecutor);
-//
+        CheckInInfo checkInInfo = CheckInInfo.newBuilder().setAirline("AmericanAirlines").setSector(SectorData.newBuilder().setName("A").build()).setFrom(1).build();
+        ListenableFuture<ListCheckInResponse> listCheckInResponse = stub.checkInCounters(checkInInfo);
+        ExecutorService listCheckInExecutor = Executors.newCachedThreadPool();
+
+        Futures.addCallback(listCheckInResponse, new FutureCallback<ListCheckInResponse>() {
+            @Override
+            public void onSuccess(ListCheckInResponse listCheckInResponse) {
+                StringBuilder sb = new StringBuilder();
+                for (CheckInResponse checkInResponse : listCheckInResponse.getInfoList()) {
+                    if (checkInResponse.getFlightCode().isEmpty()){
+                        sb.append("Counter " + checkInResponse.getCounter() + " is idle\n");
+                    } else {
+                        sb.append("Check-in successful of " + checkInResponse.getCheckinCode() + " for flight " + checkInResponse.getFlightCode() + " at counter " + checkInResponse.getCounter() + "\n");
+                    }
+                }
+                System.out.println(sb);
+                latch.countDown();
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                System.out.println(throwable.getMessage());
+                latch.countDown();
+            }
+        }, listCheckInExecutor);
+
 //
         try {
             logger.info("Waiting for response...");

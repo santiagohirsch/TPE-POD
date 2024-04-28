@@ -6,6 +6,9 @@ import ar.edu.itba.pod.grpc.query.Filters;
 import ar.edu.itba.pod.grpc.query.ListCounterResponse;
 import org.slf4j.Logger;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.concurrent.CountDownLatch;
 
@@ -45,6 +48,11 @@ public class QueryCountersCallback extends CustomFutureCallback<ListCounterRespo
 
         }
 
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filters.getOutPath()))) {
+            writer.write(sb.toString());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         System.out.println(sb);
         getLatch().countDown();
     }
