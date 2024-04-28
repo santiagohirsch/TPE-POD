@@ -4,6 +4,7 @@ import ar.edu.itba.pod.grpc.admin.*;
 import ar.edu.itba.pod.grpc.client.utils.callbacks.Admin.AddBookingCallback;
 import ar.edu.itba.pod.grpc.client.utils.callbacks.Admin.AddCountersCallback;
 import ar.edu.itba.pod.grpc.client.utils.callbacks.Admin.AddSectorCallback;
+import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.protobuf.BoolValue;
@@ -39,7 +40,6 @@ public class AdminClient {
 
         checkNullArgument(serverAddress);
         checkNullArgument(action);
-
         ManagedChannel channel = ManagedChannelBuilder.forTarget(serverAddress)
                 .usePlaintext()
                 .build();
@@ -127,7 +127,7 @@ public class AdminClient {
 //
 //        CounterCount counterRequest = CounterCount.newBuilder()
 //                .setSector(SectorData.newBuilder().setName("A").build())
-//                .setCount(3).build();
+//                .setCount(2).build();
 //        ListenableFuture<CounterResponse> counterResponse = stub.addCounters(counterRequest);
 //
 //        ExecutorService counterExecutor = Executors.newCachedThreadPool();
@@ -149,7 +149,7 @@ public class AdminClient {
 //        }, counterExecutor);
 //
 //        //1.3
-//        Path path = Paths.get("/Users/santiago/Desktop/ITBA/1C2024/POD/TPE/tpe1-g12/client/src/main/resources/manifest.csv");
+//        Path path = Paths.get("/Users/camila/Desktop/POD/TPE-POD/tpe1-g12/client/src/main/resources/manifest.csv");
 //        try (Stream<String> lines = Files.lines(path).skip(1)) {
 //            lines.forEach(linea -> {
 //                String[] campos = linea.split(";");

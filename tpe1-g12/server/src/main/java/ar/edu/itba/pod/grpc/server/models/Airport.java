@@ -1,5 +1,10 @@
 package ar.edu.itba.pod.grpc.server.models;
 
+import ar.edu.itba.pod.grpc.counter.CounterInfo;
+import ar.edu.itba.pod.grpc.counter.CounterInfoResponse;
+import ar.edu.itba.pod.grpc.query.CounterResponse;
+import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
+import ar.edu.itba.pod.grpc.server.utils.Pair;
 import ar.edu.itba.pod.grpc.passenger.*;
 import ar.edu.itba.pod.grpc.server.utils.*;
 
@@ -9,6 +14,8 @@ public class Airport {
     private List<Sector> sectors;
     private List<Airline> airlines;
     private static int nextAvailableCounter = 1;
+    private List<List<CheckInData>> checkedInList = new ArrayList<>();
+    private List<CheckInData> checkedInList2 = new ArrayList<>();
 
     public Airport() {
         this.sectors = new ArrayList<>();
@@ -319,10 +326,30 @@ public class Airport {
 
     }
 
+    public Map<String, List<CounterInfoModel>> queryCounters(String sectorName) {
+        List<CounterInfoModel> counterInfoModelList = new ArrayList<>();
+        Map<String, List<CounterInfoModel>> counterInfo = new HashMap<>();
+        Pair<Integer, Integer> interval = new Pair<>(-1, -1);
+
+        if(sectorName.isEmpty()){
+            for(Sector sector : sectors){
+                counterInfo.putIfAbsent(sector.getName(), sector.getCounterInfo(interval));
+            }
+        }
+        else{
+            counterInfoModelList = getCounterInfo(sectorName, interval);
+            if(counterInfoModelList == null){
+                counterInfoModelList = Collections.emptyList();
+            }
+            counterInfo.putIfAbsent(sectorName, counterInfoModelList);
+        }
+
+        return counterInfo;
+    }
+
     public List<CheckInResponseModel> checkInCounters(String sectorName, int from, String airline) {
 
         for (Sector sector: sectors) {
-            //Chequeo que haya un sector
             if(sector.getName().equals(sectorName)){
                 Optional<Assignment> assignment = sector.getAssignedCounters().getOrDefault(from, Optional.empty());
                 if (assignment.isEmpty()){
@@ -331,7 +358,17 @@ public class Airport {
                     return Collections.emptyList();
                 }
                 if (assignment.get().getAirline().equals(airline)){
-                    return assignment.get().checkAll(from);
+                    List<CheckInResponseModel> recentCheckedInList = assignment.get().checkAll(from);
+                    List<CheckInData> aux = new ArrayList<>();
+                    for (CheckInResponseModel checkedIn : recentCheckedInList) {
+                            if(checkedIn.getFlightCode() == null || checkedIn.getFlightCode().isEmpty()) {
+                               continue;
+                            }
+                            else {
+                                checkedInList2.add(new CheckInData(checkedIn, sectorName, airline));
+                            }
+                        }
+                    return recentCheckedInList;
                 } else {
                     //existe pero en otra airline
                     // TODO exception
@@ -344,5 +381,41 @@ public class Airport {
         // no existe el sector
         // TODO excetption
         return Collections.emptyList();
+    }
+
+    public List<CheckInData> queryCheckIns(String sectorName, String airline) {
+        List<CheckInData> filteredCheckedInList = new ArrayList<>();
+
+
+        if(sectorName.isEmpty() && airline.isEmpty()) {
+            return checkedInList2;
+        }
+
+        else if(!sectorName.isEmpty() && airline.isEmpty()) {
+            for(CheckInData checkInData : checkedInList2) {
+                if(checkInData.getSector().equals(sectorName))
+                    filteredCheckedInList.add(checkInData);
+                break;
+            }
+        }
+        else if(sectorName.isEmpty()) {
+            for (CheckInData checkInData : checkedInList2) {
+                if (checkInData.getAirline().equals(airline)) {
+                    filteredCheckedInList.add(checkInData);
+                    break;
+                }
+            }
+        }
+        else {
+            System.out.println("mandaron 2!");
+            for (CheckInData checkInData : checkedInList2) {
+                if (checkInData.getAirline().equals(airline) && checkInData.getSector().equals(sectorName)) {
+                    filteredCheckedInList.add(checkInData);
+                    break;
+                }
+            }
+        }
+
+        return filteredCheckedInList;
     }
 }

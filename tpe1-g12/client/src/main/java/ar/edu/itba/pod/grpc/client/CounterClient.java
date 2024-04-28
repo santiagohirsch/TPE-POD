@@ -33,6 +33,7 @@ public class CounterClient {
         // TODO - check logs
         logger.info("tpe1-g12 Client Starting ...");
         logger.info("grpc-com-patterns Client Starting ...");
+
         Map<String, String> argsMap = parseArgs(args);
 
         String serverAddress = getArg(argsMap, SERVER_ADDRESS);
@@ -89,6 +90,14 @@ public class CounterClient {
                 ListenableFuture<FreeCounterResponse> freeCounterResponse = stub.freeCounters(freeCounterInfo);
                 Futures.addCallback(freeCounterResponse, new FreeCountersCallback(logger,latch), Executors.newCachedThreadPool());
             }
+            case LIST_PENDING_ASSIGNMENTS -> {
+                String sector = getArg(argsMap, SECTOR);
+                latch = new CountDownLatch(1);
+                SectorData listPendingInfo = SectorData.newBuilder().setName(sector).build();
+                ListenableFuture<ListPendingAssignmentResponse> listPendingAssignmentResponse = stub.listPendingAssignments(listPendingInfo);
+                Futures.addCallback(listPendingAssignmentResponse, new ListPendingAssignments(logger, latch), Executors.newCachedThreadPool());
+            }
+
             case CHECKIN_COUNTERS -> {
                 String sector = getArg(argsMap, SECTOR);
                 String counterFromArg = getArg(argsMap, COUNTER_FROM);
@@ -99,14 +108,17 @@ public class CounterClient {
                 ListenableFuture<ListCheckInResponse> listCheckInResponse = stub.checkInCounters(checkInInfo);
                 Futures.addCallback(listCheckInResponse, new CheckInCountersCallback(logger, latch), Executors.newCachedThreadPool());
             }
-            case LIST_PENDING_ASSIGNMENTS -> {
-                String sector = getArg(argsMap, SECTOR);
-                latch = new CountDownLatch(1);
-                SectorData listPendingInfo = SectorData.newBuilder().setName(sector).build();
-                ListenableFuture<ListPendingAssignmentResponse> listPendingAssignmentResponse = stub.listPendingAssignments(listPendingInfo);
-                Futures.addCallback(listPendingAssignmentResponse, new ListPendingAssignments(logger, latch), Executors.newCachedThreadPool());
-            }
+
         }
+//
+
+//                latch = new CountDownLatch(1);
+//                AssignCounterInfo assignCounterRequest = AssignCounterInfo.newBuilder().addAllFlightCodes(flights).setCount(counterCount).setAirline(airline).setSector(SectorData.newBuilder().setName(sector).build()).build();
+//                ListenableFuture<AssignCounterResponse> assignCounterResponse = stub.assignCounters(assignCounterRequest);
+//                Futures.addCallback(assignCounterResponse, new AssignCountersCallback(logger,latch), Executors.newCachedThreadPool());
+//            }
+
+
 //        ExecutorService listCheckInExecutor = Executors.newCachedThreadPool();
 //
 //        Futures.addCallback(listCheckInResponse, new FutureCallback<ListCheckInResponse>() {
@@ -130,9 +142,6 @@ public class CounterClient {
 //                latch.countDown();
 //            }
 //        }, listCheckInExecutor);
-
-
-
 
 
 //
@@ -173,7 +182,7 @@ public class CounterClient {
 //        }, sectorsExecutor);
 //
 //        //2.2
-//        ListenableFuture<CounterInfoResponse> counterInfoResponse = stub.getCounterInfo(CounterInfo.newBuilder().setName("A").setInterval(Interval.newBuilder().setLowerBound(1).setUpperBound(2).build()).build());
+//        ListenableFuture<CounterInfoResponse> counterInfoResponse = stub.getCounterInfo(CounterInfo.newBuilder().setName("A").setInterval(Interval.newBuilder().setLowerBound(1).setUpperBound(10).build()).build());
 //        ExecutorService counterInfoExecutor = Executors.newCachedThreadPool();
 //        Futures.addCallback(counterInfoResponse, new FutureCallback<>() {
 //            @Override
@@ -280,7 +289,7 @@ public class CounterClient {
 //                latch.countDown();
 //            }
 //        }, assignCounterExecutor);
-//
+
 //        //2.4
 //
 //        FreeCounterInfo freeCounterInfo = FreeCounterInfo.newBuilder().setFrom(1).setCounterName("A").setAirline("AmericanAirlines").build();
@@ -410,7 +419,7 @@ public class CounterClient {
 //        },freeCountersExecutor);
 //
 //        //2.5
-//        CheckInInfo checkInInfo = CheckInInfo.newBuilder().setAirline("AmericanAirlines").setSector(SectorData.newBuilder().setName("A").build()).setFrom(5).build();
+//        CheckInInfo checkInInfo = CheckInInfo.newBuilder().setAirline("AmericanAirlines").setSector(SectorData.newBuilder().setName("A").build()).setFrom(1).build();
 //        ListenableFuture<ListCheckInResponse> listCheckInResponse = stub.checkInCounters(checkInInfo);
 //        ExecutorService listCheckInExecutor = Executors.newCachedThreadPool();
 //
@@ -435,8 +444,7 @@ public class CounterClient {
 //                latch.countDown();
 //            }
 //        }, listCheckInExecutor);
-//
-//
+
         try {
             logger.info("Waiting for response...");
             latch.await();

@@ -1,5 +1,8 @@
 package ar.edu.itba.pod.grpc.server.models;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import ar.edu.itba.pod.grpc.server.utils.CheckInResponseModel;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 
@@ -13,7 +16,6 @@ public class Assignment {
     private List<String> bookings;
 
     private Queue<String> checkInQueue;
-
 
     private List<Pair<String, Integer>> checkedIn;
 
@@ -35,6 +37,14 @@ public class Assignment {
 
     public List<Flight> getFlightCodes() {
         return flightCodes;
+    }
+
+    public List<String> getStringFlightCodes() {
+        List<String> strFlightCodes = new ArrayList<>();
+        for (Flight flight : flightCodes) {
+            strFlightCodes.add(flight.getFlightCode());
+        }
+        return strFlightCodes;
     }
 
     public int getCant() {

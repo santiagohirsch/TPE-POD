@@ -1,6 +1,7 @@
 package ar.edu.itba.pod.grpc.client;
 
 import ar.edu.itba.pod.grpc.client.utils.callbacks.Passenger.*;
+import ar.edu.itba.pod.grpc.counter.SectorData;
 import ar.edu.itba.pod.grpc.passenger.*;
 import ar.edu.itba.pod.grpc.passenger.CounterInfo;
 import ar.edu.itba.pod.grpc.passenger.Interval;
@@ -76,13 +77,13 @@ public class PassengerClient {
 //
 //            CountDownLatch latch = new CountDownLatch(1);
 //            PassengerServiceGrpc.PassengerServiceFutureStub stub = PassengerServiceGrpc.newFutureStub(channel);
-//
-//            //CounterInfo request = CounterInfo.newBuilder().setCounters(Interval.newBuilder().setLowerBound(1).setUpperBound(3)).setSector("A").setAirline("Americas").setQueueLen(6).setFlightCode("AA123").build();
-//            Booking request = Booking.newBuilder().setBookingCode("YZA456").build();
+
+//            CounterInfo request = CounterInfo.newBuilder().setCounters(Interval.newBuilder().setLowerBound(1).setUpperBound(3)).setSector("A").setAirline("Americas").setQueueLen(6).setFlightCode("AA123").build();
+//            Booking request = Booking.newBuilder().setBookingCode("XYZ240").build();
 //            //YZA456
 //            //XYZ234
 //            ListenableFuture<CounterInfo> response = stub.fetchCounter(request);
-//            //SectorData request = SectorData.newBuilder().setName("A").build();
+////            SectorData request = SectorData.newBuilder().setName("A").build();
 //            //ListenableFuture<BoolValue> response = stub.addSector(request);
 //
 //            ExecutorService executor = Executors.newCachedThreadPool();
@@ -116,11 +117,11 @@ public class PassengerClient {
 ////             -------------------------------------------------------------------------------------------------------------------------------------------
 //
 //
-//
+////
 //            ExecutorService checkInExecutor = Executors.newCachedThreadPool();
 //            CheckInInfo checkInRequest = CheckInInfo.newBuilder()
-//                    .setBooking(Booking.newBuilder().setBookingCode("XYZ240").build())
-//                    .setCounter(5)
+//                    .setBooking(Booking.newBuilder().setBookingCode("XYZ234").build())
+//                    .setCounter(1)
 //                    .setSectorName("A")
 //                    .build();
 //            ListenableFuture<CheckInResponse> checkInresponse = stub.checkIn(checkInRequest);
@@ -146,7 +147,7 @@ public class PassengerClient {
 //                    latch.countDown();
 //                }
 //            }, checkInExecutor);
-//
+
 //
 //
 //            // -------------------------------------------------------------------------------------------------------------------------------------------
