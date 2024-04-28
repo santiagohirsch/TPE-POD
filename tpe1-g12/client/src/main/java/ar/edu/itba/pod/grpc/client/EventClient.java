@@ -1,6 +1,7 @@
 package ar.edu.itba.pod.grpc.client;
 
 import ar.edu.itba.pod.grpc.event.EventServiceGrpc;
+import ar.edu.itba.pod.grpc.event.Notification;
 import ar.edu.itba.pod.grpc.event.RegisterInfo;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -9,6 +10,7 @@ import com.google.protobuf.BoolValue;
 import com.google.protobuf.Empty;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,58 +30,58 @@ public class EventClient {
                 .usePlaintext()
                 .build();
 
+        //setup
+        CountDownLatch latch = new CountDownLatch(1);
+        EventServiceGrpc.EventServiceFutureStub futureStub = EventServiceGrpc.newFutureStub(channel);
+        EventServiceGrpc.EventServiceStub stub = EventServiceGrpc.newStub(channel);
+        //4.1
+            RegisterInfo registerRequest = RegisterInfo.newBuilder().setAirline("AmericanAirlines").build();
+            StreamObserver<Notification> observer = new StreamObserver<>() {
+                @Override
+                public void onNext(Notification notification) {
+                    System.out.println(notification.getMessage());
+                }
+
+                @Override
+                public void onError(Throwable throwable) {
+                    latch.countDown();
+                    System.out.println(throwable.getMessage());
+                }
+
+                @Override
+                public void onCompleted() {
+                    latch.countDown();
+                }
+            };
+
+            stub.register(registerRequest, observer);
+            latch.await();
+//          -----------------------------------------------------------------------------
+
+        //4.2
+        RegisterInfo unRegisterRequest = RegisterInfo.newBuilder().setAirline("AmericanAirlines").build();
+        ListenableFuture<Notification> unRegisterResponse = futureStub.unRegister(unRegisterRequest);
+        Futures.addCallback(unRegisterResponse, new FutureCallback<>() {
+            @Override
+            public void onSuccess(Notification notification) {
+                System.out.println(notification.getMessage());
+                latch.countDown();
+            }
+
+            @Override
+            public void onFailure(Throwable throwable) {
+                System.out.println(throwable.getMessage());
+                latch.countDown();
+            }
+        }, Executors.newCachedThreadPool());
+
+
         try {
-            //setup
-            CountDownLatch latch = new CountDownLatch(1);
-            EventServiceGrpc.EventServiceFutureStub stub = EventServiceGrpc.newFutureStub(channel);
-            //1.1
-            RegisterInfo request = RegisterInfo.newBuilder().setAirline("Americas").build();
-            ListenableFuture<Empty> response = stub.register(request);
-
-            ExecutorService executor = Executors.newCachedThreadPool();
-            Futures.addCallback(response, new FutureCallback<>(
-
-            ) {
-                @Override
-                public void onSuccess(Empty e) {
-                    String out = request.getAirline() + "  registered successfully for events" ;
-
-                    System.out.println(out);
-                    latch.countDown();
-                }
-
-                @Override
-                public void onFailure(Throwable throwable) {
-                    System.out.println("fallo");
-                    latch.countDown();
-                }
-        }, executor);
-
-            // -----------------------------------------------------------------------------
-            RegisterInfo unRegisterRequest = RegisterInfo.newBuilder().setAirline("Americas").build();
-            ListenableFuture<BoolValue> unRegisterResponse = stub.unRegister(unRegisterRequest);
-
-            ExecutorService unRegisterExecutor = Executors.newCachedThreadPool();
-            Futures.addCallback(unRegisterResponse, new FutureCallback<>(
-
-            ) {
-                @Override
-                public void onSuccess(BoolValue boolValue) {
-                    String out = request.getAirline() + "  unregistered successfully for events" ;
-
-                    System.out.println(out);
-                    latch.countDown();
-                }
-
-                @Override
-                public void onFailure(Throwable throwable) {
-                    System.out.println("fallo");
-                    latch.countDown();
-                }
-            }, unRegisterExecutor);
-
-        } finally {
-            channel.shutdown().awaitTermination(10, TimeUnit.SECONDS);
+            logger.info("Waiting for response...");
+            latch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         }
+
     }
 }
