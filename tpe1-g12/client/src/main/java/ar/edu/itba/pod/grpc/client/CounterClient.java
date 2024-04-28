@@ -90,61 +90,14 @@ public class CounterClient {
                 Futures.addCallback(freeCounterResponse, new FreeCountersCallback(logger,latch), Executors.newCachedThreadPool());
             }
             case CHECKIN_COUNTERS -> {
-
-        //2.3
-//        List<String> flightCodes = new ArrayList<>();
-//        flightCodes.add("AA123");
-////        flightCodes.add("AA234");
-//        AssignCounterInfo assignCounterInfo = AssignCounterInfo.newBuilder()
-//                .setSector(SectorData.newBuilder().setName("A"))
-//                .setAirline("AmericanAirlines")
-//                .addAllFlightCodes(flightCodes)
-//                .setCount(3)
-//                .build();
-//        ListenableFuture<AssignCounterResponse> assignCounterResponse = stub.assignCounters(assignCounterInfo);
-//        ExecutorService assignCounterExecutor = Executors.newCachedThreadPool();
-//        Futures.addCallback(assignCounterResponse, new FutureCallback<>() {
-//            @Override
-//            public void onSuccess(AssignCounterResponse assignCounterResponse) {
-//                StringBuilder sb = new StringBuilder();
-//                if (assignCounterResponse.getAssignedInterval().getLowerBound() == -1) {
-//                    sb.append("The assignation could not be done");
-//                    System.out.println(sb);
-//                    latch.countDown();
-//                } else if (assignCounterResponse.getAssignedInterval().getLowerBound() == 0) {
-//                    sb.append(assignCounterResponse.getInfo().getCount())
-//                            .append(" counters")
-//                            .append(" in Sector ")
-//                            .append(assignCounterResponse.getInfo().getSector().getName())
-//                            .append(" is pending with ")
-//                            .append(assignCounterResponse.getPendingAhead())
-//                            .append(" other pendings ahead");
-//                    System.out.println(sb);
-//                    latch.countDown();
-//                } else {
-//                    sb.append(assignCounterResponse.getInfo().getCount())
-//                            .append(" counters ")
-//                            .append("(")
-//                            .append(assignCounterResponse.getAssignedInterval().getLowerBound())
-//                            .append("-")
-//                            .append(assignCounterResponse.getAssignedInterval().getUpperBound())
-//                            .append(")")
-//                            .append(" in Sector ")
-//                            .append(assignCounterResponse.getInfo().getSector().getName())
-//                            .append(" are now checking in passengers from ")
-//                            .append(assignCounterResponse.getInfo().getAirline())
-//                            .append(" ");
-//                    Iterator<String> it = assignCounterResponse.getInfo().getFlightCodesList().stream().toList().iterator();
-//                    while (it.hasNext()) {
-//                        sb.append(it.next());
-//                        if (it.hasNext()) {
-//                            sb.append("|");
-//                        }
-//                    }
-//                    sb.append(" flights");
-//                    System.out.println(sb);
-//                    latch.countDown();
-//                }
+                String sector = getArg(argsMap, SECTOR);
+                String counterFromArg = getArg(argsMap, COUNTER_FROM);
+                String airline = getArg(argsMap, AIRLINE);
+                int counterFrom = Integer.parseInt(counterFromArg);
+                latch = new CountDownLatch(1);
+                CheckInInfo checkInInfo = CheckInInfo.newBuilder().setAirline(airline).setSector(SectorData.newBuilder().setName(sector).build()).setFrom(counterFrom).build();
+                ListenableFuture<ListCheckInResponse> listCheckInResponse = stub.checkInCounters(checkInInfo);
+                Futures.addCallback(listCheckInResponse, new CheckInCountersCallback(logger, latch), Executors.newCachedThreadPool());
             }
             case LIST_PENDING_ASSIGNMENTS -> {
                 String sector = getArg(argsMap, SECTOR);
@@ -154,6 +107,33 @@ public class CounterClient {
                 Futures.addCallback(listPendingAssignmentResponse, new ListPendingAssignments(logger, latch), Executors.newCachedThreadPool());
             }
         }
+//        ExecutorService listCheckInExecutor = Executors.newCachedThreadPool();
+//
+//        Futures.addCallback(listCheckInResponse, new FutureCallback<ListCheckInResponse>() {
+//            @Override
+//            public void onSuccess(ListCheckInResponse listCheckInResponse) {
+//                StringBuilder sb = new StringBuilder();
+//                for (CheckInResponse checkInResponse : listCheckInResponse.getInfoList()) {
+//                    if (checkInResponse.getFlightCode().isEmpty()){
+//                        sb.append("Counter " + checkInResponse.getCounter() + " is idle\n");
+//                    } else {
+//                        sb.append("Check-in successful of " + checkInResponse.getCheckinCode() + " for flight " + checkInResponse.getFlightCode() + " at counter " + checkInResponse.getCounter() + "\n");
+//                    }
+//                }
+//                System.out.println(sb);
+//                latch.countDown();
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable throwable) {
+//                System.out.println(throwable.getMessage());
+//                latch.countDown();
+//            }
+//        }, listCheckInExecutor);
+
+
+
+
 
 //
 //        //setup
@@ -456,48 +436,7 @@ public class CounterClient {
 //            }
 //        }, listCheckInExecutor);
 //
-//        //2.6
-//        SectorData sectorData = SectorData.newBuilder().setName("A").build();
-//        ListenableFuture<ListPendingAssignmentResponse> pendingAssignmentResponse = stub.listPendingAssignments(sectorData);
-//        ExecutorService pendingAssignmentsExecutor = Executors.newCachedThreadPool();
 //
-//        Futures.addCallback(pendingAssignmentResponse, new FutureCallback<>() {
-//            @Override
-//            public void onSuccess(ListPendingAssignmentResponse pendingAssignments) {
-//                StringBuilder sb = new StringBuilder();
-//                if( !pendingAssignments.getPendingsList().isEmpty() && pendingAssignments.getPendingsList().get(0).getCounters() >= 0) {
-//                    sb.append("Counters\tAirline\t\tFlights\n");
-//                    sb.append("##########################################################\n");
-//                    for (PendingAssignment pendingAssignment : pendingAssignments.getPendingsList()) {
-//                        sb.append(pendingAssignment.getCounters());
-//                        sb.append("\t");
-//                        sb.append(pendingAssignment.getAirline());
-//                        sb.append("\t");
-//                        for (String flight : pendingAssignment.getFlightCodesList()) {
-//                            sb.append(flight);
-//                            sb.append("|");
-//                        }
-//                        sb.deleteCharAt(sb.lastIndexOf("|"));
-//                        sb.append("\n");
-//                    }
-//                }
-//                else if (pendingAssignments.getPendingsList().isEmpty()) {
-//                    sb.append("No pending assignments ");
-//                }
-//                else {
-//                    sb.append("Sector inexistente"); //todo cambiar (?
-//                }
-//                System.out.println(sb);
-//                latch.countDown();
-//            }
-//
-//            @Override
-//            public void onFailure(Throwable throwable){
-//                System.out.println("Fallo mal");
-//                latch.countDown();
-//            }
-//        },pendingAssignmentsExecutor);
-
         try {
             logger.info("Waiting for response...");
             latch.await();
