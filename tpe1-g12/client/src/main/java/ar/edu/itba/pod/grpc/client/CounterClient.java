@@ -102,6 +102,67 @@ public class CounterClient {
 //            }
 //        }
 
+                latch = new CountDownLatch(1);
+                AssignCounterInfo assignCounterRequest = AssignCounterInfo.newBuilder().addAllFlightCodes(flights).setCount(counterCount).setAirline(airline).setSector(SectorData.newBuilder().setName(sector).build()).build();
+                ListenableFuture<AssignCounterResponse> assignCounterResponse = stub.assignCounters(assignCounterRequest);
+                Futures.addCallback(assignCounterResponse, new AssignCountersCallback(logger,latch), Executors.newCachedThreadPool());
+            }
+            case FREE_COUNTERS -> {
+                String sector = getArg(argsMap,SECTOR);
+                String counterFromArg = getArg(argsMap,COUNTER_FROM);
+                String airline = getArg(argsMap,AIRLINE);
+                int counterFrom = Integer.parseInt(counterFromArg);
+                latch = new CountDownLatch(1);
+                FreeCounterInfo freeCounterInfo = FreeCounterInfo.newBuilder().setCounterName(sector).setAirline(airline).setFrom(counterFrom).build();
+                ListenableFuture<FreeCounterResponse> freeCounterResponse = stub.freeCounters(freeCounterInfo);
+                Futures.addCallback(freeCounterResponse, new FreeCountersCallback(logger,latch), Executors.newCachedThreadPool());
+            }
+            case CHECKIN_COUNTERS -> {
+                String sector = getArg(argsMap, SECTOR);
+                String counterFromArg = getArg(argsMap, COUNTER_FROM);
+                String airline = getArg(argsMap, AIRLINE);
+                int counterFrom = Integer.parseInt(counterFromArg);
+                latch = new CountDownLatch(1);
+                CheckInInfo checkInInfo = CheckInInfo.newBuilder().setAirline(airline).setSector(SectorData.newBuilder().setName(sector).build()).setFrom(counterFrom).build();
+                ListenableFuture<ListCheckInResponse> listCheckInResponse = stub.checkInCounters(checkInInfo);
+                Futures.addCallback(listCheckInResponse, new CheckInCountersCallback(logger, latch), Executors.newCachedThreadPool());
+            }
+            case LIST_PENDING_ASSIGNMENTS -> {
+                String sector = getArg(argsMap, SECTOR);
+                latch = new CountDownLatch(1);
+                SectorData listPendingInfo = SectorData.newBuilder().setName(sector).build();
+                ListenableFuture<ListPendingAssignmentResponse> listPendingAssignmentResponse = stub.listPendingAssignments(listPendingInfo);
+                Futures.addCallback(listPendingAssignmentResponse, new ListPendingAssignments(logger, latch), Executors.newCachedThreadPool());
+            }
+        }
+//        ExecutorService listCheckInExecutor = Executors.newCachedThreadPool();
+//
+//        Futures.addCallback(listCheckInResponse, new FutureCallback<ListCheckInResponse>() {
+//            @Override
+//            public void onSuccess(ListCheckInResponse listCheckInResponse) {
+//                StringBuilder sb = new StringBuilder();
+//                for (CheckInResponse checkInResponse : listCheckInResponse.getInfoList()) {
+//                    if (checkInResponse.getFlightCode().isEmpty()){
+//                        sb.append("Counter " + checkInResponse.getCounter() + " is idle\n");
+//                    } else {
+//                        sb.append("Check-in successful of " + checkInResponse.getCheckinCode() + " for flight " + checkInResponse.getFlightCode() + " at counter " + checkInResponse.getCounter() + "\n");
+//                    }
+//                }
+//                System.out.println(sb);
+//                latch.countDown();
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable throwable) {
+//                System.out.println(throwable.getMessage());
+//                latch.countDown();
+//            }
+//        }, listCheckInExecutor);
+
+
+
+
+
 //
 //        //setup
         CountDownLatch latch = new CountDownLatch(1);
@@ -334,6 +395,76 @@ public class CounterClient {
 //            }
 //        },pendingAssignmentsExecutor);
 
+//        FreeCounterInfo freeCounterInfo = FreeCounterInfo.newBuilder().setFrom(1).setCounterName("A").setAirline("AmericanAirlines").build();
+//        ListenableFuture<FreeCounterResponse> freeCountersResponse = stub.freeCounters(freeCounterInfo);
+//        ExecutorService freeCountersExecutor = Executors.newCachedThreadPool();
+//
+//        Futures.addCallback(freeCountersResponse, new FutureCallback<>() {
+//            @Override
+//            public void onSuccess(FreeCounterResponse freeCounterResponse) {
+//                StringBuilder sb = new StringBuilder();
+//                if (freeCounterResponse.getFreedInterval().getLowerBound() != -1) {
+//                    sb.append("Ended check-in for flights ");
+//                    for (String flight : freeCounterResponse.getFlightCodesList()) {
+//                        sb.append(flight);
+//                        sb.append("|");
+//                    }
+//                    sb.deleteCharAt(sb.lastIndexOf("|"));
+//                    sb.append(" on ");
+//                    sb.append(freeCounterResponse.getFreedInterval().getUpperBound() - freeCounterResponse.getFreedInterval().getLowerBound() + 1);
+//                    sb.append(" counters ");
+//                    sb.append("(");
+//                    sb.append(freeCounterResponse.getFreedInterval().getLowerBound());
+//                    sb.append("-");
+//                    sb.append(freeCounterResponse.getFreedInterval().getUpperBound());
+//                    sb.append(") ");
+//                    sb.append("in Sector ");
+//                    sb.append(freeCounterResponse.getSector());
+//                    System.out.println(sb);
+//                    latch.countDown();
+//                }
+//                else {
+//                    sb.append("Error");
+//                    System.out.println(sb);
+//                    latch.countDown();
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable throwable){
+//                System.out.println("Fallo mal");
+//                latch.countDown();
+//            }
+//        },freeCountersExecutor);
+//
+//        //2.5
+//        CheckInInfo checkInInfo = CheckInInfo.newBuilder().setAirline("AmericanAirlines").setSector(SectorData.newBuilder().setName("A").build()).setFrom(5).build();
+//        ListenableFuture<ListCheckInResponse> listCheckInResponse = stub.checkInCounters(checkInInfo);
+//        ExecutorService listCheckInExecutor = Executors.newCachedThreadPool();
+//
+//        Futures.addCallback(listCheckInResponse, new FutureCallback<ListCheckInResponse>() {
+//            @Override
+//            public void onSuccess(ListCheckInResponse listCheckInResponse) {
+//                StringBuilder sb = new StringBuilder();
+//                for (CheckInResponse checkInResponse : listCheckInResponse.getInfoList()) {
+//                    if (checkInResponse.getFlightCode().isEmpty()){
+//                        sb.append("Counter " + checkInResponse.getCounter() + " is idle\n");
+//                    } else {
+//                        sb.append("Check-in successful of " + checkInResponse.getCheckinCode() + " for flight " + checkInResponse.getFlightCode() + " at counter " + checkInResponse.getCounter() + "\n");
+//                    }
+//                }
+//                System.out.println(sb);
+//                latch.countDown();
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable throwable) {
+//                System.out.println(throwable.getMessage());
+//                latch.countDown();
+//            }
+//        }, listCheckInExecutor);
+//
+//
         try {
             logger.info("Waiting for response...");
             latch.await();
