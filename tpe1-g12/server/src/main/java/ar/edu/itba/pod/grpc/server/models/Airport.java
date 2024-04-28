@@ -363,4 +363,14 @@ public class Airport {
         // TODO excetption
         return Collections.emptyList();
     }
+
+    public Map<Assignment, Pair<Integer,Integer>> solvePendingAssignments(String sector) {
+        Sector targetSector = getSectorByName(sector);
+        return targetSector.solvePendingAssignments();
+    }
+
+    public List<Pair<Assignment,Integer>> removeFromPending(String sector, Assignment assignment) {
+        Sector targetSector = getSectorByName(sector);
+        return targetSector.removeFromPending(assignment);
+    }
 }

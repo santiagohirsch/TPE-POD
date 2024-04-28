@@ -12,6 +12,7 @@ import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
     private Airport airport;
@@ -112,6 +113,20 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
             List<String> flightCodes = freedCounters.get().getFlightCodes().stream().map(Flight::getFlightCode).toList();
             Pair<Integer, Integer>  interval = new Pair<>(request.getFrom(), request.getFrom() + freedCounters.get().getCant() - 1);
             this.notificationCenter.notifyFreeCounters(airline, flightCodes, interval, request.getCounterName());
+            Map<Assignment, Pair<Integer,Integer>> solvedAssignments = this.airport.solvePendingAssignments(sector);
+            synchronized (solvedAssignments) {
+                for (Map.Entry<Assignment, Pair<Integer,Integer>> entry : solvedAssignments.entrySet()) {
+                    Assignment a = entry.getKey();
+                    Pair<Integer,Integer> assignmentInterval = entry.getValue();
+                    this.notificationCenter.notifyAssignCounters(a.getAirline(), a.getCant(), assignmentInterval, sector, a.getFlightCodes().stream().map(Flight::getFlightCode).collect(Collectors.toList()));
+                    List<Pair<Assignment, Integer>> toNotify = this.airport.removeFromPending(sector, a);
+                    for (Pair<Assignment, Integer> assignmentToNotify : toNotify) {
+                        Assignment assignment = assignmentToNotify.getLeft();
+                        this.notificationCenter.notifyPending(assignment.getAirline(), assignment.getCant(), sector, assignment.getFlightCodes().stream().map(Flight::getFlightCode).collect(Collectors.toList()), assignmentToNotify.getRight());
+                    }
+                }
+            }
+
             FreeCounterResponse freeCounterResponse = FreeCounterResponse.newBuilder()
                     .addAllFlightCodes(flightCodes)
                     .setSector(SectorData.newBuilder()
