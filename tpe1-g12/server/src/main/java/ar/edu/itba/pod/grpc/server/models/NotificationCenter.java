@@ -81,7 +81,7 @@ public class NotificationCenter {
 
     public void notifyIntoQueue(String airline, String booking, Pair<Integer, Integer> interval, String sectorName, String flightCode, Integer people) {
         notify(airline, String.format("Booking %s for flight %s from %s is now waiting to check-in on counters (%d-%d) in Sector %s with %d people in line"
-                , booking, flightCode, airline, sectorName, airline, interval.getLeft(), interval.getRight(), sectorName, people));
+                , booking, flightCode, airline, interval.getLeft(), interval.getRight(), sectorName, people));
     }
 
     public void notifyCheckIn(String airline, String bookingCode, String flightCode, int counter, String sector) {
