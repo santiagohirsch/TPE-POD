@@ -4,6 +4,7 @@ import ar.edu.itba.pod.grpc.counter.*;
 import ar.edu.itba.pod.grpc.server.models.Airport;
 import ar.edu.itba.pod.grpc.server.models.Assignment;
 import ar.edu.itba.pod.grpc.server.models.Flight;
+import ar.edu.itba.pod.grpc.server.utils.CheckInResponseModel;
 import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 import com.google.protobuf.Empty;
@@ -119,7 +120,18 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
 
     @Override
     public void checkInCounters(CheckInInfo request, StreamObserver<ListCheckInResponse> responseObserver) {
-        super.checkInCounters(request, responseObserver);
+        List<CheckInResponseModel> checkIns = this.airport.checkInCounters(request.getSector().getName(), request.getFrom(), request.getAirline());
+        ListCheckInResponse.Builder builder = ListCheckInResponse.newBuilder();
+        checkIns.forEach((checkIn) -> {
+            builder.addInfo(CheckInResponse.newBuilder()
+                    .setCounter(checkIn.getCounter())
+                    .setFlightCode(checkIn.getFlightCode())
+                    .setCheckinCode(checkIn.getBookingCode())
+                    .build());
+        });
+        responseObserver.onNext(builder.build());
+        responseObserver.onCompleted();
+
     }
 
     @Override

@@ -2,6 +2,7 @@ package ar.edu.itba.pod.grpc.server;
 
 import ar.edu.itba.pod.grpc.server.models.Airport;
 import ar.edu.itba.pod.grpc.server.servants.AdminServant;
+import ar.edu.itba.pod.grpc.server.servants.PassengerServant;
 import ar.edu.itba.pod.grpc.server.servants.CounterServant;
 import ar.edu.itba.pod.grpc.server.servants.EventServant;
 import io.grpc.ServerBuilder;
@@ -20,6 +21,7 @@ public class Server {
         io.grpc.Server server = ServerBuilder.forPort(port)
                 .addService(new AdminServant(airport))
                 .addService(new EventServant(airport))
+                .addService(new PassengerServant(airport))
                 .addService(new CounterServant(airport))
                 .build();
         server.start();
