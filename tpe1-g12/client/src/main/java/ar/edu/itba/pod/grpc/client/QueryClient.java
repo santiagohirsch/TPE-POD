@@ -36,42 +36,40 @@ public class QueryClient {
         logger.info("tpe1-g12 Client Starting ...");
         logger.info("grpc-com-patterns Client Starting ...");
 
-        /*Map<String, String> argsMap = parseArgs(args);
+       Map<String, String> argsMap = parseArgs(args);
 
         String serverAddress = getArg(argsMap, SERVER_ADDRESS);
         String action = getArg(argsMap, ACTION);
 
         checkNullArgument(serverAddress);
         checkNullArgument(action);
-        */
-        ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50052)
 
-//        ManagedChannel channel = ManagedChannelBuilder.forTarget("50051" /* serverAddress */ )
+        ManagedChannel channel = ManagedChannelBuilder.forTarget(serverAddress)
                 .usePlaintext()
                 .build();
 
         QueryServiceGrpc.QueryServiceFutureStub stub = QueryServiceGrpc.newFutureStub(channel);
         CountDownLatch latch = new CountDownLatch(1);
-//        switch (action) {
-//            case QUERY_COUNTER -> {
-//                String outPath = getArg(argsMap,OUT_PATH);
-//                String sector = getArg(argsMap,SECTOR);
-//                latch = new CountDownLatch(1);
-//                Filters request = Filters.newBuilder().setSectorName(sector).setOutPath(outPath).build();
-//                ListenableFuture<ListCounterResponse> response = stub.queryCounters(request);
-//                Futures.addCallback(response, new QueryCountersCallback(logger, latch, request), Executors.newCachedThreadPool());
-//            }
-//            case CHECKINS -> {
-//                String outPath = getArg(argsMap,OUT_PATH);
-//                String sector = getArg(argsMap,SECTOR);
-//                String airline = getArg(argsMap,AIRLINE);
-//                latch = new CountDownLatch(1);
-//                Filters checkinsFilters = Filters.newBuilder().setSectorName(sector).setAirline(airline).setOutPath(outPath).build();
-//                ListenableFuture<ListCheckIn> checkinsResponse = stub.queryCheckIns(checkinsFilters);
-//                ExecutorService checkinsExecutor = Executors.newCachedThreadPool();
-//                Futures.addCallback(checkinsResponse, new QueryClientCallback(logger, latch, checkinsFilters), checkinsExecutor);
-//            }
-//        }
+        switch (action) {
+            case QUERY_COUNTER -> {
+                String outPath = getArg(argsMap,OUT_PATH);
+                String sector = getArg(argsMap,SECTOR);
+                latch = new CountDownLatch(1);
+                Filters request = Filters.newBuilder().setSectorName(sector).setOutPath(outPath).build();
+                ListenableFuture<ListCounterResponse> response = stub.queryCounters(request);
+                Futures.addCallback(response, new QueryCountersCallback(logger, latch, request), Executors.newCachedThreadPool());
+            }
+            case CHECKINS -> {
+                String outPath = getArg(argsMap,OUT_PATH);
+                String sector = getArg(argsMap,SECTOR);
+                String airline = getArg(argsMap,AIRLINE);
+                latch = new CountDownLatch(1);
+                Filters checkinsFilters = Filters.newBuilder().setSectorName(sector).setAirline(airline).setOutPath(outPath).build();
+                ListenableFuture<ListCheckIn> checkinsResponse = stub.queryCheckIns(checkinsFilters);
+                ExecutorService checkinsExecutor = Executors.newCachedThreadPool();
+                Futures.addCallback(checkinsResponse, new QueryClientCallback(logger, latch, checkinsFilters), checkinsExecutor);
+            }
+        }
 
         //5.1
 //        Filters filters = Filters.newBuilder().setOutPath("../query1.txt").build();
@@ -121,42 +119,42 @@ public class QueryClient {
 
         //5.2
 //        Filters checkinsFilters = Filters.newBuilder().setOutPath("../query2.txt").build();
-        Filters checkinsFilters = Filters.newBuilder().setOutPath("../query2.txt").build();
-        ListenableFuture<ListCheckIn> checkinsResponse = stub.queryCheckIns(checkinsFilters);
-        ExecutorService checkinsExecutor = Executors.newCachedThreadPool();
-        Futures.addCallback(checkinsResponse, new FutureCallback<>() {
-            @Override
-            public void onSuccess(ListCheckIn listCheckIn) {
-                StringBuilder sb = new StringBuilder();
-
-                sb.append("Sector\t Counter\t Airline\t Flight\t Booking\n");
-                sb.append("##########################################################\n");
-
-                for(CheckIn checkIn : listCheckIn.getCheckInList()) {
-                    sb.append(checkIn.getSectorName()).append("\t");
-                    sb.append(checkIn.getCounter()).append("\t");
-                    sb.append(checkIn.getAirline()).append("\t");
-                    sb.append(checkIn.getFlightCode()).append("\t");
-                    sb.append(checkIn.getBookingCode()).append("\n");
-                }
-
-                try (BufferedWriter writer = new BufferedWriter(new FileWriter("../query3.txt"))) {
-                    writer.write(sb.toString());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                System.out.println(sb);
-                latch.countDown();
-            }
-
-            @Override
-            public void onFailure(Throwable throwable) {
-                System.out.println("fallo");
-                System.out.println(throwable.getMessage());
-                latch.countDown();
-            }
-        }, checkinsExecutor);
+//        Filters checkinsFilters = Filters.newBuilder().setOutPath("../query2.txt").build();
+//        ListenableFuture<ListCheckIn> checkinsResponse = stub.queryCheckIns(checkinsFilters);
+//        ExecutorService checkinsExecutor = Executors.newCachedThreadPool();
+//        Futures.addCallback(checkinsResponse, new FutureCallback<>() {
+//            @Override
+//            public void onSuccess(ListCheckIn listCheckIn) {
+//                StringBuilder sb = new StringBuilder();
+//
+//                sb.append("Sector\t Counter\t Airline\t Flight\t Booking\n");
+//                sb.append("##########################################################\n");
+//
+//                for(CheckIn checkIn : listCheckIn.getCheckInList()) {
+//                    sb.append(checkIn.getSectorName()).append("\t");
+//                    sb.append(checkIn.getCounter()).append("\t");
+//                    sb.append(checkIn.getAirline()).append("\t");
+//                    sb.append(checkIn.getFlightCode()).append("\t");
+//                    sb.append(checkIn.getBookingCode()).append("\n");
+//                }
+//
+//                try (BufferedWriter writer = new BufferedWriter(new FileWriter("../query3.txt"))) {
+//                    writer.write(sb.toString());
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//
+//                System.out.println(sb);
+//                latch.countDown();
+//            }
+//
+//            @Override
+//            public void onFailure(Throwable throwable) {
+//                System.out.println("fallo");
+//                System.out.println(throwable.getMessage());
+//                latch.countDown();
+//            }
+//        }, checkinsExecutor);
 
         try {
             logger.info("Waiting for response...");
