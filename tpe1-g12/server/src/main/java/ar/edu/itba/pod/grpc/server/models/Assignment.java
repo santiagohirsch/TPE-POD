@@ -1,5 +1,6 @@
 package ar.edu.itba.pod.grpc.server.models;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -20,6 +21,14 @@ public class Assignment {
 
     public List<Flight> getFlightCodes() {
         return flightCodes;
+    }
+
+    public List<String> getStringFlightCodes() {
+        List<String> strFlightCodes = new ArrayList<>();
+        for (Flight flight : flightCodes) {
+            strFlightCodes.add(flight.getFlightCode());
+        }
+        return strFlightCodes;
     }
 
     public int getCant() {
