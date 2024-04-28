@@ -48,6 +48,7 @@ public class PassengerClient {
             case FETCH_COUNTER -> {
                 String bookingCode = getArg(argsMap,BOOKING);
                 Booking request = Booking.newBuilder().setBookingCode(bookingCode).build();
+                latch = new CountDownLatch(1);
                 ListenableFuture<CounterInfo> response = stub.fetchCounter(request);
                 Futures.addCallback(response, new FetchCounterCallback(logger, latch), Executors.newCachedThreadPool());
             }
@@ -60,12 +61,15 @@ public class PassengerClient {
                         .setCounter(counter)
                         .setSectorName(sectorName)
                         .build();
+
+                latch = new CountDownLatch(1);
                 ListenableFuture<CheckInResponse> checkInResponse = stub.checkIn(checkInRequest);
                 Futures.addCallback(checkInResponse, new PassengerCheckinCallback(logger, latch), Executors.newCachedThreadPool());
             }
             case PASSENGER_STATUS -> {
                 String bookingCode = getArg(argsMap,BOOKING);
                 Booking statusRequest = Booking.newBuilder().setBookingCode(bookingCode).build();
+                latch = new CountDownLatch(1);
                 ListenableFuture<StatusResponse> statusResponse = stub.status(statusRequest);
                 Futures.addCallback(statusResponse, new PassengerStatusCallback(logger, latch), Executors.newCachedThreadPool());
             }
