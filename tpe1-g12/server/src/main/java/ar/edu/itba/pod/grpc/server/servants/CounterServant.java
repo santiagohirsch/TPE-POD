@@ -109,14 +109,17 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
         Optional<Assignment> freedCounters = this.airport.freeCounters(sector,from,airline); //todo cambiar
 
         if (freedCounters.isPresent()) {
+            List<String> flightCodes = freedCounters.get().getFlightCodes().stream().map(Flight::getFlightCode).toList();
+            Pair<Integer, Integer>  interval = new Pair<>(request.getFrom(), request.getFrom() + freedCounters.get().getCant() - 1);
+            this.notificationCenter.notifyFreeCounters(airline, flightCodes, interval, request.getCounterName());
             FreeCounterResponse freeCounterResponse = FreeCounterResponse.newBuilder()
-                    .addAllFlightCodes(freedCounters.get().getFlightCodes().stream().map(Flight::getFlightCode).toList())
+                    .addAllFlightCodes(flightCodes)
                     .setSector(SectorData.newBuilder()
                             .setName(request.getCounterName())
                             .build())
                     .setFreedInterval(Interval.newBuilder()
-                            .setLowerBound(request.getFrom())
-                            .setUpperBound(request.getFrom() + freedCounters.get().getCant() - 1)
+                            .setLowerBound(interval.getLeft())
+                            .setUpperBound(interval.getRight())
                             .build())
                     .build();
             responseObserver.onNext(freeCounterResponse);
@@ -129,6 +132,9 @@ public class CounterServant extends CounterServiceGrpc.CounterServiceImplBase {
         List<CheckInResponseModel> checkIns = this.airport.checkInCounters(request.getSector().getName(), request.getFrom(), request.getAirline());
         ListCheckInResponse.Builder builder = ListCheckInResponse.newBuilder();
         checkIns.forEach((checkIn) -> {
+            if(!checkIn.getBookingCode().isEmpty()){
+                this.notificationCenter.notifyCheckIn(request.getAirline(), checkIn.getBookingCode(), checkIn.getFlightCode(),checkIn.getCounter(),request.getSector().getName());
+            }
             builder.addInfo(CheckInResponse.newBuilder()
                     .setCounter(checkIn.getCounter())
                     .setFlightCode(checkIn.getFlightCode())

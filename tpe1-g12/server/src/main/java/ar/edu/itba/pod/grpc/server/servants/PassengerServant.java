@@ -61,6 +61,7 @@ public class PassengerServant extends PassengerServiceGrpc.PassengerServiceImplB
         checkInResponse.ifPresentOrElse(
                 //TODO la variable esta ya hace el get()!!!
                 aux -> {
+                    this.notificationCenter.notifyIntoQueue(aux.getAirline(), aux.getBookingCode(), aux.getInterval(), request.getSectorName(), aux.getFlightCode(), aux.getPeopleAhead());
                     responseObserver.onNext(CheckInResponse.newBuilder()
                                     .setBooking(Booking.newBuilder().setBookingCode(aux.getBookingCode()).build())
                             .setCounterInfo(CounterInfo.newBuilder()
