@@ -1,6 +1,8 @@
 package ar.edu.itba.pod.grpc.server.models;
 
 import ar.edu.itba.pod.grpc.event.Notification;
+import ar.edu.itba.pod.grpc.server.exceptions.AirlineAlreadyRegisteredForNotificationsException;
+import ar.edu.itba.pod.grpc.server.exceptions.AirlineNotRegisteredForNotificationsException;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 import io.grpc.stub.StreamObserver;
 
@@ -21,8 +23,7 @@ public class NotificationCenter {
         notificationLock.lock();
         try {
             if (registeredAirlines.containsKey(airline)) {
-                //TODO exceptions
-                throw new IllegalArgumentException("Airline has already been registered for notifications");
+                throw new AirlineAlreadyRegisteredForNotificationsException("Airline has already been registered for notifications");
             } else {
                 registeredAirlines.put(airline, observer);
             }
@@ -36,7 +37,7 @@ public class NotificationCenter {
         try {
             if (!registeredAirlines.containsKey(airline)) {
                 //TODO exceptions
-                throw new IllegalArgumentException("Airline was not registered for notifications");
+                throw new AirlineNotRegisteredForNotificationsException("Airline was not registered for notifications");
             } else {
                 StreamObserver<Notification> toReturn = registeredAirlines.get(airline);
                 registeredAirlines.remove(airline);

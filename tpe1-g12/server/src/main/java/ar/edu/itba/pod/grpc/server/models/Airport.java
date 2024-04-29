@@ -38,9 +38,22 @@ public class Airport {
     }
 
     public void checkIfAirlineExists(String airline) {
-        if(!this.airlines.contains(new Airline(airline))){
-            //TODO excepciones
-            throw new IllegalArgumentException("no existe la aerolinea");
+        Airline airlineObj = new Airline(airline);
+        if(!this.airlines.contains(airlineObj)){
+            throw new InvalidArgumentException("airline " + airline + " does not exist");
+        }
+        else if(airlineObj.getFlights().isEmpty()) {
+            throw new InvalidArgumentException("airline " + airline + " has no flights");
+        }
+        else {
+            int emptyQueues = 0;
+            for(Flight flight : airlineObj.getFlights()){
+                if (flight.getBookings().isEmpty())
+                    emptyQueues++;
+            }
+            if(emptyQueues == airlineObj.getFlights().size()){
+                throw new InvalidArgumentException("airline " + airline + " no passengers");
+            }
         }
     }
 
