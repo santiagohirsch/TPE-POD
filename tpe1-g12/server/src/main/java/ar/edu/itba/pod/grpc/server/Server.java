@@ -35,7 +35,7 @@ public class Server {
                 .addService(handledService.apply(new QueryServant(airport)))
                 .addService(handledService.apply(new AdminServant(airport, notificationCenter)))
                 .addService(handledService.apply(new EventServant(airport, notificationCenter)))
-                .addServicehandledService.apply((new PassengerServant(airport, notificationCenter)))
+                .addService(handledService.apply(new PassengerServant(airport, notificationCenter)))
                 .addService(handledService.apply(new CounterServant(airport, notificationCenter)))
                 .build();
         server.start();

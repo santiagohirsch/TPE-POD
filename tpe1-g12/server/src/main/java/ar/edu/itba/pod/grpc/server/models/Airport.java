@@ -46,7 +46,7 @@ public class Airport {
 
     public boolean addSector(Sector sector) {
         if (sectors.contains(sector) ) {
-            throw new SecurityException(String.format("Sector %s already exists", sector));
+            throw new SecurityException(String.format("Sector %s already exists", sector.getName()));
         } else {
             sectors.add(sector);
             return true;
@@ -64,7 +64,7 @@ public class Airport {
                 return toReturn;
             }
         }
-        throw new InvalidArgumentException(String.format("Sector %s does not exist", sector));
+        throw new InvalidArgumentException(String.format("Sector %s does not exist", sector.getName()));
     }
 
     public Optional<CounterInfoBookingModel> fetchCounter(String bookingCode) {
