@@ -3,13 +3,6 @@ package ar.edu.itba.pod.grpc.server.models;
 import ar.edu.itba.pod.grpc.server.exceptions.*;
 import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
-import ar.edu.itba.pod.grpc.event.RegisterInfo;
-import ar.edu.itba.pod.grpc.counter.CounterInfoResponse;
-import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
-import ar.edu.itba.pod.grpc.server.utils.Pair;
-import com.google.protobuf.BoolValue;
-import com.google.protobuf.Empty;
-import ar.edu.itba.pod.grpc.passenger.*;
 import ar.edu.itba.pod.grpc.server.utils.*;
 
 import java.util.*;
@@ -20,8 +13,7 @@ public class Airport {
     private List<Sector> sectors;
     private List<Airline> airlines;
     private static int nextAvailableCounter = 1;
-    private List<List<CheckInData>> checkedInList = new ArrayList<>();
-    private List<CheckInData> checkedInList2 = new ArrayList<>();
+    private List<CheckInData> checkedInList = new ArrayList<>();
     private final ReadWriteLock readWriteLock = new ReentrantReadWriteLock(true);
 
     public Airport() {
@@ -511,18 +503,18 @@ public class Airport {
 
 
             if(sectorName.isEmpty() && airline.isEmpty()) {
-                return checkedInList2;
+                return checkedInList;
             }
 
             else if(!sectorName.isEmpty() && airline.isEmpty()) {
-                for(CheckInData checkInData : checkedInList2) {
+                for(CheckInData checkInData : checkedInList) {
                     if(checkInData.getSector().equals(sectorName))
                         filteredCheckedInList.add(checkInData);
                     break;
                 }
             }
             else if(sectorName.isEmpty()) {
-                for (CheckInData checkInData : checkedInList2) {
+                for (CheckInData checkInData : checkedInList) {
                     if (checkInData.getAirline().equals(airline)) {
                         filteredCheckedInList.add(checkInData);
                         break;
@@ -530,7 +522,7 @@ public class Airport {
                 }
             }
             else {
-                for (CheckInData checkInData : checkedInList2) {
+                for (CheckInData checkInData : checkedInList) {
                     if (checkInData.getAirline().equals(airline) && checkInData.getSector().equals(sectorName)) {
                         filteredCheckedInList.add(checkInData);
                         break;
