@@ -41,6 +41,7 @@ public class AdminClient {
         checkNullArgument(serverAddress);
         checkNullArgument(action);
         ManagedChannel channel = ManagedChannelBuilder.forTarget(serverAddress)
+        //ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50052)
                 .usePlaintext()
                 .build();
 
@@ -92,8 +93,8 @@ public class AdminClient {
             }
             default -> { System.exit(1);}
         }
-
-        //setup
+//
+//        //setup
 //        CountDownLatch latch = new CountDownLatch(1);
 //        //1.1
 //        SectorData request = SectorData.newBuilder().setName("A").build();
@@ -118,16 +119,15 @@ public class AdminClient {
 //
 //            @Override
 //            public void onFailure(Throwable throwable) {
-//                System.out.println("fallo");
 //                latch.countDown();
 //            }
 //        }, executor);
-//
+
 //        //1.2
 //
 //        CounterCount counterRequest = CounterCount.newBuilder()
 //                .setSector(SectorData.newBuilder().setName("A").build())
-//                .setCount(2).build();
+//                .setCount(-2).build();
 //        ListenableFuture<CounterResponse> counterResponse = stub.addCounters(counterRequest);
 //
 //        ExecutorService counterExecutor = Executors.newCachedThreadPool();

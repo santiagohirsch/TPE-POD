@@ -17,7 +17,7 @@ public class AdminServant extends AdminServiceGrpc.AdminServiceImplBase {
     }
 
     @Override
-    public void addSector(SectorData request, StreamObserver<BoolValue> responseObserver) {
+    public void addSector(SectorData request, StreamObserver<BoolValue> responseObserver)  {
         boolean response = this.airport.addSector(new Sector(request.getName()));
 
         responseObserver.onNext(BoolValue.of(response));

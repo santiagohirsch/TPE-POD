@@ -1,11 +1,8 @@
 package ar.edu.itba.pod.grpc.server.models;
 
-import ar.edu.itba.pod.grpc.counter.CounterInfo;
-import ar.edu.itba.pod.grpc.counter.CounterInfoResponse;
-import ar.edu.itba.pod.grpc.query.CounterResponse;
+import ar.edu.itba.pod.grpc.server.exceptions.*;
 import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
-import ar.edu.itba.pod.grpc.passenger.*;
 import ar.edu.itba.pod.grpc.server.utils.*;
 
 import java.util.*;
@@ -14,8 +11,7 @@ public class Airport {
     private List<Sector> sectors;
     private List<Airline> airlines;
     private static int nextAvailableCounter = 1;
-    private List<List<CheckInData>> checkedInList = new ArrayList<>();
-    private List<CheckInData> checkedInList2 = new ArrayList<>();
+    private List<CheckInData> checkedInList = new ArrayList<>();
 
     public Airport() {
         this.sectors = new ArrayList<>();
@@ -36,7 +32,7 @@ public class Airport {
 
     public boolean addSector(Sector sector) {
         if (sectors.contains(sector) ) {
-            return false;
+            throw new SecurityException(String.format("Sector %s already exists", sector));
         } else {
             sectors.add(sector);
             return true;
@@ -44,6 +40,9 @@ public class Airport {
     }
 
     public Optional<Pair<Integer,Integer>> addCounters(Sector sector, int cant){
+        if (cant <= 0) {
+            throw new InvalidArgumentException("The amount of counters must be greater than 0");
+        }
         for (Sector s : sectors) {
             if (s.equals(sector)) {
                 Optional<Pair<Integer,Integer>> toReturn = Optional.of(s.addCounters(cant, nextAvailableCounter));
@@ -51,7 +50,7 @@ public class Airport {
                 return toReturn;
             }
         }
-        return Optional.empty();
+        throw new InvalidArgumentException(String.format("Sector %s does not exist", sector));
     }
 
     public Optional<CounterInfoBookingModel> fetchCounter(String bookingCode) {
@@ -81,12 +80,13 @@ public class Airport {
                 }
             }
         }
-
-        return Optional.empty();
+        throw new InvalidArgumentException(String.format("Booking %s does not exists", bookingCode));
     }
 
     public Optional<CheckInModel> intoQueue(String bookingCode, Sector s, int initialCounter) {
-
+        if(!sectors.contains(s)){
+            throw new InvalidArgumentException(String.format("Sector %s does not exists", s.getName()));
+        }
         for (Sector sector: sectors) {
             //Chequeo que haya un sector
             if(sector.equals(s)){
@@ -99,8 +99,11 @@ public class Airport {
                                     //Chequeo si el mostrador es el correcto
                                     if (initialCounter==counter.getKey()){
                                         // Chequeo si ya esta haciendo la cola o si ya hizo check in
-                                        if(counter.getValue().get().getCheckInQueue().contains(bookingCode) || counter.getValue().get().hasCheckedIn(bookingCode)){
-                                            return Optional.empty();
+                                        if(counter.getValue().get().getCheckInQueue().contains(bookingCode) ){
+                                            throw new PassangerAlreadyInQueueException("Passenger is already in the queue");
+                                        }
+                                        if(counter.getValue().get().hasCheckedIn(bookingCode)){
+                                            throw new PassangerAlreadyCheckedInException("Passenger has already checked in");
                                         }
                                         counter.getValue().get().addToQueue(bookingCode);
                                         int lastCounter = 0;
@@ -109,6 +112,8 @@ public class Airport {
                                         }
                                         return Optional.of(new CheckInModel(new Pair<>(counter.getKey(), counter.getKey() + counter.getValue().get().getCant() - 1), counter.getValue().get().getAirline(), flight.getFlightCode(), counter.getValue().get().getCheckInQueue().size(), bookingCode));
 
+                                    } else {
+                                        throw new WrongCounterException("El número de mostrador no corresponde con el inicio de un rango de mostradores asignado a la aerolínea que esté aceptando pasajeros del vuelo de la reserva");
                                     }
 
                                 }
@@ -119,8 +124,7 @@ public class Airport {
             }
 
         }
-
-        return Optional.empty();
+        throw new InvalidArgumentException(String.format("Booking %s does not exists", bookingCode));
     }
 
     public Optional<CheckInStatusModel> status(String bookingCode) {
@@ -133,7 +137,6 @@ public class Airport {
                                 Assignment counterInfo = counter.getValue().get();
                                 //Ya se chequeo
                                 if(counterInfo.hasCheckedIn(bookingCode)){
-
                                     return Optional.of(new CheckInStatusModel(new Pair<>(-1, -1), counter.getValue().get().getAirline(), flight.getFlightCode(), 0, sector.getName(), counterInfo.getCounter(bookingCode),0, bookingCode));
                                 }
                                 int lastCounter = 0;
@@ -155,8 +158,7 @@ public class Airport {
                 }
             }
         }
-
-        return Optional.empty();
+        throw new InvalidArgumentException(String.format("Booking %s does not exists or there is no counter", bookingCode));
     }
 
     /*public static boolean containsFlightCode(List<Flight> flights1, List<Flight> flights2) {
@@ -176,11 +178,11 @@ public class Airport {
             for(Flight flight : a.getFlights()) {
                 if(Objects.equals(flight_code, flight.getFlightCode())) {
                     if(!Objects.equals(a.getName(), airline))
-                        return false;
+                        throw new FlightAlreadyAddedException(String.format("Flight %s already added to airline %s", flight_code, airline));
 
                 }
                 if(flight.getBookings().contains(booking_code))
-                    return false;
+                    throw new BookingAlreadyExistException(String.format("Booking %s already exists",booking_code));
             }
             if(Objects.equals(a.getName(), airline)) {
                 target_airline = a;
@@ -206,7 +208,7 @@ public class Airport {
 
     public Optional<Map<String, List<Pair<Integer, Integer>>>> listSectors() {
         if (this.sectors.isEmpty()) {
-            return Optional.empty();
+            throw new NoSectorsAvailableException("There are no sectors in the Airport yet");
         }
 
         Map<String, List<Pair<Integer, Integer>>> countersPerSectors = new HashMap<>();
@@ -245,7 +247,7 @@ public class Airport {
             }
         }
         if (targetSector == null) {
-            return new Pair<>(-1, -1);
+            throw new InvalidArgumentException(String.format("Sector %s does not exists", sector));
         }
 
         String targetAirline = null;
@@ -257,9 +259,11 @@ public class Airport {
             for (Flight flight : a.getFlights()) {
                 if (flightCodes.contains(flight.getFlightCode())) {
                     if (!a.getName().equals(airline)) {
-                        return new Pair<>(-1, -1);
+                        //Existe ese flightcode pero en otra aerolinea
+                        throw new WrongAirlineForFlightCodeException(String.format("flight code %s belongs to airline %s", flight.getFlightCode(), airline));
                     } else if (flight.getBookings().isEmpty()) {
-                        return new Pair<>(-1, -1);
+                        //No se agregaron pasajeros esperados con el código de vuelo, para al menos uno de los vuelos solicitados
+                        throw new NoBookingsForFlightException(String.format("No passangers for flight code %s", flight.getFlightCode()));
                     } else {
                         airlineFlights.add(flight);
                     }
@@ -273,7 +277,7 @@ public class Airport {
         }
 
         if (targetAirline == null) {
-            return new Pair<>(-1, -1);
+            throw new InvalidArgumentException(String.format("Airline %s does not exists", airline));
         }
 
 
@@ -287,16 +291,19 @@ public class Airport {
     public Optional<Assignment>  freeCounters(String sector, int from, String airline) {
         Sector targetSector = getSectorByName(sector);
         if(targetSector == null) {
-            return Optional.empty(); //todo checkear
+            throw new InvalidArgumentException(String.format("Sector %s does not exists", sector));
         }
-
+        //todo:
+        //El rango de mostradores no existe en ese sector (los mostradores no están asignados)
+        //El rango de mostradores existe pero no corresponde a esa aerolínea (una aerolínea sólo puede liberar sus rangos)
+        //Existen pasajeros esperando a ser atendidos en la cola del rango
         return targetSector.freeCounters(from,airline);
     }
 
     public Optional<Queue<Assignment>> listPendingAssignments(String sectorName) {
         Sector targetSector = getSectorByName(sectorName);
         if(targetSector == null) {
-            return Optional.empty(); //todo deberia fallar!
+            throw new InvalidArgumentException(String.format("Sector %s does not exists", sectorName));
         }
         return targetSector.listPendingAssignments();
     }
@@ -314,12 +321,11 @@ public class Airport {
 
     public List<CounterInfoModel> getCounterInfo(String sectorName, Pair<Integer, Integer> interval) {
         Sector targetSector = getSectorByName(sectorName);
-        if (targetSector == null || interval.getLeft() > interval.getRight()) {
-            return null;            //todo deberia fallar!
+        if (targetSector == null ) {
+            throw new InvalidArgumentException(String.format("Sector %s does not exists", sectorName));
         }
-
-        if (targetSector.getAssignedCounters().isEmpty()) {
-            return Collections.emptyList();
+        if (interval.getLeft() > interval.getRight() || targetSector.getAssignedCounters().isEmpty()) {
+            throw new InvalidArgumentException("Invalid interval");
         }
 
         return targetSector.getCounterInfo(interval);
@@ -327,6 +333,16 @@ public class Airport {
     }
 
     public Map<String, List<CounterInfoModel>> queryCounters(String sectorName) {
+        int emptyCounters = 0;
+        for(Sector sector: sectors) {
+            if(sector.getAssignedCounters().isEmpty()) {
+                emptyCounters++; // Incrementa el contador si todos los contadores están vacíos
+            }
+        }
+
+        if (emptyCounters == sectors.size()) {
+            throw new NoAssignedCountersException("No counters assigned in airport");
+        }
         List<CounterInfoModel> counterInfoModelList = new ArrayList<>();
         Map<String, List<CounterInfoModel>> counterInfo = new HashMap<>();
         Pair<Integer, Integer> interval = new Pair<>(-1, -1);
@@ -348,14 +364,13 @@ public class Airport {
     }
 
     public List<CheckInResponseModel> checkInCounters(String sectorName, int from, String airline) {
-
         for (Sector sector: sectors) {
             if(sector.getName().equals(sectorName)){
                 Optional<Assignment> assignment = sector.getAssignedCounters().getOrDefault(from, Optional.empty());
                 if (assignment.isEmpty()){
                     // NO EXISTE COUNTER
                     // TODO exception
-                    return Collections.emptyList();
+                    throw new NoAssignedCountersException(String.format("No assigned counters for sector %s", sectorName));
                 }
                 if (assignment.get().getAirline().equals(airline)){
                     List<CheckInResponseModel> recentCheckedInList = assignment.get().checkAll(from);
@@ -365,41 +380,39 @@ public class Airport {
                                continue;
                             }
                             else {
-                                checkedInList2.add(new CheckInData(checkedIn, sectorName, airline));
+                                checkedInList.add(new CheckInData(checkedIn, sectorName, airline));
                             }
                         }
                     return recentCheckedInList;
                 } else {
-                    //existe pero en otra airline
-                    // TODO exception
-                    return Collections.emptyList();
+                   throw new IncorrectAirlineForCountersException(String.format("Incorrect range of counters for airline %s", airline));
                 }
             }
 
         }
 
-        // no existe el sector
-        // TODO excetption
-        return Collections.emptyList();
+        throw new InvalidArgumentException(String.format("Sector %s does not exists", sectorName));
     }
 
     public List<CheckInData> queryCheckIns(String sectorName, String airline) {
         List<CheckInData> filteredCheckedInList = new ArrayList<>();
-
+        if(checkedInList.isEmpty()) {
+            throw new NoCheckInsRegisteredException("No check in's registered at the moment");
+        }
 
         if(sectorName.isEmpty() && airline.isEmpty()) {
-            return checkedInList2;
+            return checkedInList;
         }
 
         else if(!sectorName.isEmpty() && airline.isEmpty()) {
-            for(CheckInData checkInData : checkedInList2) {
+            for(CheckInData checkInData : checkedInList) {
                 if(checkInData.getSector().equals(sectorName))
                     filteredCheckedInList.add(checkInData);
                 break;
             }
         }
         else if(sectorName.isEmpty()) {
-            for (CheckInData checkInData : checkedInList2) {
+            for (CheckInData checkInData : checkedInList) {
                 if (checkInData.getAirline().equals(airline)) {
                     filteredCheckedInList.add(checkInData);
                     break;
@@ -407,8 +420,7 @@ public class Airport {
             }
         }
         else {
-            System.out.println("mandaron 2!");
-            for (CheckInData checkInData : checkedInList2) {
+            for (CheckInData checkInData : checkedInList) {
                 if (checkInData.getAirline().equals(airline) && checkInData.getSector().equals(sectorName)) {
                     filteredCheckedInList.add(checkInData);
                     break;

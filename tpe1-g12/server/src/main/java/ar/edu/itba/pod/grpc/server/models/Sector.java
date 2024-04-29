@@ -2,6 +2,7 @@ package ar.edu.itba.pod.grpc.server.models;
 
 
 
+import ar.edu.itba.pod.grpc.server.exceptions.*;
 import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 import org.checkerframework.checker.units.qual.C;
@@ -70,9 +71,9 @@ public class Sector  {
         // Check if any of the flight codes have been already assigned
         for (Map.Entry<Integer, Optional<Assignment>> entry : assignedCounters.entrySet()) {
             if (entry.getValue().isPresent()) {
-                for (Flight flightCode : airlineFlights) {
-                    if (entry.getValue().get().getFlightCodes().contains(flightCode)) {
-                        return new Pair<>(-1, -1); // Flight code already assigned
+                for (Flight flight : airlineFlights) {
+                    if (entry.getValue().get().getFlightCodes().contains(flight)) {
+                        throw new FlightCodeAlreadyAssignedException(String.format("flight code %s already assigned",flight.getFlightCode())); // Flight code already assigned
                     }
                 }
             }
@@ -80,9 +81,9 @@ public class Sector  {
 
         // Check if any of the flight codes are already pending
         for (Assignment assignment : pendingAssignments) {
-            for (Flight flightCode : airlineFlights) {
-                if (assignment.getFlightCodes().contains(flightCode)) {
-                    return new Pair<>(-1, -1); // Flight code is already pending
+            for (Flight flight : airlineFlights) {
+                if (assignment.getFlightCodes().contains(flight)) {
+                    throw new FlightCodeAlreadyPendingException(String.format("flight code %s is already pending",flight.getFlightCode())); // Flight code is already pending
                 }
             }
         }
@@ -150,13 +151,26 @@ public class Sector  {
         if (assignedCounters.containsKey(from) &&
                 assignedCounters.get(from).isPresent() &&
                 assignedCounters.get(from).get().getAirline().equals(airline)) {
+            if(!assignedCounters.get(from).get().getCheckInQueue().isEmpty()){
+                throw new PassangersStillWaitingException("There are still passengers waiting in line");
+            }
             if (!assignedCounters.containsKey(from - 1) ||
                     assignedCounters.get(from - 1).isEmpty() ||
                     !assignedCounters.get(from - 1).get().equals(assignedCounters.get(from).get())) {
                 toRemove = from;
                 toReturn = assignedCounters.get(from);
+            } else {
+                throw new WrongCounterException(String.format("Counter %d is not the first counter from the interval", from));
             }
         } else {
+            if(!assignedCounters.containsKey(from)){
+                throw new NoAssignedCountersException(String.format("Counter %d does not exists in this sector", from));
+            }
+            if(assignedCounters.get(from).isPresent() &&
+                    !assignedCounters.get(from).get().getAirline().equals(airline)){
+                throw new WrongCounterException(String.format("Counters don't belong to %s", airline));
+            }
+
             return toReturn;
         }
 
