@@ -5,6 +5,12 @@ import ar.edu.itba.pod.grpc.counter.CounterInfoResponse;
 import ar.edu.itba.pod.grpc.query.CounterResponse;
 import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
+import ar.edu.itba.pod.grpc.event.RegisterInfo;
+import ar.edu.itba.pod.grpc.counter.CounterInfoResponse;
+import ar.edu.itba.pod.grpc.server.utils.CounterInfoModel;
+import ar.edu.itba.pod.grpc.server.utils.Pair;
+import com.google.protobuf.BoolValue;
+import com.google.protobuf.Empty;
 import ar.edu.itba.pod.grpc.passenger.*;
 import ar.edu.itba.pod.grpc.server.utils.*;
 
@@ -32,6 +38,13 @@ public class Airport {
 
     public void setSectors(List<Sector> sectors) {
         this.sectors = sectors;
+    }
+
+    public void checkIfAirlineExists(String airline) {
+        if(!this.airlines.contains(new Airline(airline))){
+            //TODO excepciones
+            throw new IllegalArgumentException("no existe la aerolinea");
+        }
     }
 
     public boolean addSector(Sector sector) {
@@ -235,6 +248,8 @@ public class Airport {
         return Optional.of(countersPerSectors);
     }
 
+
+
     public Pair<Integer, Integer> assignCounters(String sector, List<String> flightCodes, String airline, int count) {
         // (-1,-1) = error | (0, 0) = pending
         Sector targetSector = null;
@@ -254,11 +269,14 @@ public class Airport {
         for (Airline a : this.airlines) {
 
 
+            //TODO EXCEPTIONS!
             for (Flight flight : a.getFlights()) {
                 if (flightCodes.contains(flight.getFlightCode())) {
                     if (!a.getName().equals(airline)) {
                         return new Pair<>(-1, -1);
                     } else if (flight.getBookings().isEmpty()) {
+                        return new Pair<>(-1, -1);
+                    } else if(flight.isAlreadyCheckedIn()) {
                         return new Pair<>(-1, -1);
                     } else {
                         airlineFlights.add(flight);
@@ -417,5 +435,15 @@ public class Airport {
         }
 
         return filteredCheckedInList;
+    }
+
+    public Map<Assignment, Pair<Integer,Integer>> solvePendingAssignments(String sector) {
+        Sector targetSector = getSectorByName(sector);
+        return targetSector.solvePendingAssignments();
+    }
+
+    public List<Pair<Assignment,Integer>> removeFromPending(String sector, Assignment assignment) {
+        Sector targetSector = getSectorByName(sector);
+        return targetSector.removeFromPending(assignment);
     }
 }

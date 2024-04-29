@@ -8,11 +8,13 @@ public class Flight {
 
     private final String flightCode;
     private List<String> bookings;
+    private boolean alreadyCheckedIn;
 
 
     public Flight(String flightCode) {
         this.flightCode = flightCode;
         this.bookings = new ArrayList<>();
+        this.alreadyCheckedIn = false;
     }
 
     public List<String> getBookings() {
@@ -29,6 +31,14 @@ public class Flight {
 
     public void addBooking(String booking_code) {
         this.bookings.add(booking_code);
+    }
+
+    public boolean isAlreadyCheckedIn() {
+        return alreadyCheckedIn;
+    }
+
+    public void setAlreadyCheckedIn(boolean alreadyCheckedIn) {
+        this.alreadyCheckedIn = alreadyCheckedIn;
     }
 
     @Override

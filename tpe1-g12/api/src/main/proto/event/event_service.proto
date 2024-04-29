@@ -9,10 +9,14 @@ option java_package = "ar.edu.itba.pod.grpc.event";
 option java_multiple_files = true;
 
 service EventService {
-  rpc Register(RegisterInfo) returns (google.protobuf.Empty);
-  rpc UnRegister(RegisterInfo) returns (google.protobuf.BoolValue);
+  rpc Register(RegisterInfo) returns (stream Notification);
+  rpc UnRegister(RegisterInfo) returns (Notification);
 }
 
 message RegisterInfo {
   string airline = 1;
+}
+
+message Notification {
+  string message = 1;
 }
