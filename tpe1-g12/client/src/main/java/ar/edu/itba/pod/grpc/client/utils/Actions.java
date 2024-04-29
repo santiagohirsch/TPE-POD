@@ -24,7 +24,7 @@ public class Actions {
     public static final String UNREGISTER = "unregister";
 
     //5
-    public static final String QUERY_COUNTER = "queryCounter";
+    public static final String QUERY_COUNTERS = "queryCounters";
     public static final String CHECKINS = "checkins";
 
 }

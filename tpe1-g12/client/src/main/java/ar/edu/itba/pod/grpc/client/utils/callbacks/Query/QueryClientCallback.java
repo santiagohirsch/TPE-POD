@@ -40,7 +40,6 @@ public class QueryClientCallback extends CustomFutureCallback<ListCheckIn> {
             e.printStackTrace();
         }
 
-        System.out.println(sb);
         getLatch().countDown();
     }
 

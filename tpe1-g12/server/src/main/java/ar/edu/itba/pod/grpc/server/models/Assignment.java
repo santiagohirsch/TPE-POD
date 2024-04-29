@@ -7,6 +7,8 @@ import ar.edu.itba.pod.grpc.server.utils.CheckInResponseModel;
 import ar.edu.itba.pod.grpc.server.utils.Pair;
 
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class Assignment {
     private final String airline;
@@ -18,7 +20,6 @@ public class Assignment {
     private Queue<String> checkInQueue;
 
     private List<Pair<String, Integer>> checkedIn;
-
 
 
 
@@ -93,26 +94,30 @@ public class Assignment {
     }
 
     public Integer getCounter(String booking) {
+
         return checkedIn.stream().filter(pair -> pair.getLeft().equals(booking)).findFirst().get().getRight();
+
     }
 
     public List<CheckInResponseModel> checkAll(Integer startingCounter) {
+
         List<CheckInResponseModel> checkIns = new ArrayList<>();
-        for(int i = 0; i < cant; i++){
-            if(checkInQueue.isEmpty()){
-                checkIns.add(new CheckInResponseModel("","", startingCounter+i));
+        for (int i = 0; i < cant; i++) {
+            if (checkInQueue.isEmpty()) {
+                checkIns.add(new CheckInResponseModel("", "", startingCounter + i));
             } else {
                 String next = checkInQueue.remove();
-                checkedIn.add(new Pair<>(next,startingCounter+i));
+                checkedIn.add(new Pair<>(next, startingCounter + i));
                 for (Flight flight : this.flightCodes) {
                     if (flight.getBookings().contains(next)) {
-                        checkIns.add(new CheckInResponseModel(next, flight.getFlightCode(), startingCounter+i));
+                        checkIns.add(new CheckInResponseModel(next, flight.getFlightCode(), startingCounter + i));
                         break;
                     }
                 }
             }
         }
         return checkIns;
+
     }
 
 

@@ -86,52 +86,6 @@ public class EventClient {
             }
         }
 
-
-        //setup
-//        CountDownLatch latch = new CountDownLatch(1);
-//        EventServiceGrpc.EventServiceFutureStub futureStub = EventServiceGrpc.newFutureStub(channel);
-//        EventServiceGrpc.EventServiceStub stub = EventServiceGrpc.newStub(channel);
-        //4.1
-//        RegisterInfo registerRequest = RegisterInfo.newBuilder().setAirline("AmericanAirlines").build();
-//        StreamObserver<Notification> observer = new StreamObserver<>() {
-//            @Override
-//            public void onNext(Notification notification) {
-//                System.out.println(notification.getMessage());
-//            }
-//
-//            @Override
-//            public void onError(Throwable throwable) {
-//                latch.countDown();
-//                System.out.println(throwable.getMessage());
-//            }
-//
-//            @Override
-//            public void onCompleted() {
-//                latch.countDown();
-//            }
-//        };
-
-
-//          -----------------------------------------------------------------------------
-
-        //4.2
-//        RegisterInfo unRegisterRequest = RegisterInfo.newBuilder().setAirline("AmericanAirlines").build();
-//        ListenableFuture<Notification> unRegisterResponse = futureStub.unRegister(unRegisterRequest);
-//        Futures.addCallback(unRegisterResponse, new FutureCallback<>() {
-//            @Override
-//            public void onSuccess(Notification notification) {
-//                System.out.println(notification.getMessage());
-//                latch.countDown();
-//            }
-//
-//            @Override
-//            public void onFailure(Throwable throwable) {
-//                System.out.println(throwable.getMessage());
-//                latch.countDown();
-//            }
-//        }, Executors.newCachedThreadPool());
-
-
         try {
             logger.info("Waiting for response...");
             latch.await();

@@ -1,5 +1,6 @@
 package ar.edu.itba.pod.grpc.client.utils;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ public class ClientUtils {
         for(String arg : args) {
             String[] parts = arg.split("=");
             if(parts.length == 2) {
-                argsMap.put(parts[0], parts[1]);
+                argsMap.put(parts[0].substring(2), parts[1]);
             }
 
         }

@@ -29,7 +29,7 @@ public class AdminClient {
     private static CountDownLatch latch;
 
     public static void main(String[] args) throws InterruptedException {
-        // TODO - check logs
+
         logger.info("tpe1-g12 Client Starting ...");
         logger.info("grpc-com-patterns Client Starting ...");
 
@@ -47,8 +47,7 @@ public class AdminClient {
 
         AdminServiceGrpc.AdminServiceFutureStub stub = AdminServiceGrpc.newFutureStub(channel);
 
-
-        switch (action){
+        switch (action) {
             case ADD_SECTOR -> {
                 String sector = getArg(argsMap, SECTOR);
                 checkNullArgument(sector);
@@ -91,108 +90,10 @@ public class AdminClient {
                     e.printStackTrace();
                 }
             }
-            default -> { System.exit(1);}
+            default -> {
+                System.exit(1);
+            }
         }
-//
-//        //setup
-//        CountDownLatch latch = new CountDownLatch(1);
-//        //1.1
-//        SectorData request = SectorData.newBuilder().setName("A").build();
-//        ListenableFuture<BoolValue> response = stub.addSector(request);
-//
-//        ExecutorService executor = Executors.newCachedThreadPool();
-//        Futures.addCallback(response, new FutureCallback<>(
-//
-//        ) {
-//            @Override
-//            public void onSuccess(BoolValue boolValue) {
-//                String out;
-//                if(!boolValue.getValue()){
-//                    out = "Sector " + request.getName() + " already exists";
-//                }else{
-//                    out = "Sector " + request.getName() + " added successfully";
-//                }
-//
-//                System.out.println(out);
-//                latch.countDown();
-//            }
-//
-//            @Override
-//            public void onFailure(Throwable throwable) {
-//                latch.countDown();
-//            }
-//        }, executor);
-
-//        //1.2
-//
-//        CounterCount counterRequest = CounterCount.newBuilder()
-//                .setSector(SectorData.newBuilder().setName("A").build())
-//                .setCount(-2).build();
-//        ListenableFuture<CounterResponse> counterResponse = stub.addCounters(counterRequest);
-//
-//        ExecutorService counterExecutor = Executors.newCachedThreadPool();
-//        Futures.addCallback(counterResponse, new FutureCallback<>(
-//
-//        ) {
-//            @Override
-//            public void onSuccess(CounterResponse resp) {
-//                String out = resp.getCount() + " new counters (" + resp.getInterval().getLowerBound() + "-" + resp.getInterval().getUpperBound() + ") in Sector " + resp.getSector().getName() + " added successfully";
-//                System.out.println(out);
-//                latch.countDown();
-//            }
-//
-//            @Override
-//            public void onFailure(Throwable throwable) {
-//                System.out.println("fallo");
-//                latch.countDown();
-//            }
-//        }, counterExecutor);
-//
-//        //1.3
-//        Path path = Paths.get("/Users/camila/Desktop/POD/TPE-POD/tpe1-g12/client/src/main/resources/manifest.csv");
-//        try (Stream<String> lines = Files.lines(path).skip(1)) {
-//            lines.forEach(linea -> {
-//                String[] campos = linea.split(";");
-//
-//
-//                Booking booking = Booking.newBuilder()
-//                        .setBookingCode(campos[0])
-//                        .setFlightCode(campos[1])
-//                        .setAirline(campos[2])
-//                        .build();
-//
-//                ListenableFuture<BoolValue> bookingResponse = stub.addBooking(booking);
-//
-//                ExecutorService bookingExecutor = Executors.newCachedThreadPool();
-//                Futures.addCallback(bookingResponse, new FutureCallback<>(
-//
-//                ) {
-//                    @Override
-//                    public void onSuccess(BoolValue boolValue) {
-//                        String out;
-//                        if(boolValue.getValue()){
-//                            out = "Booking " + booking.getBookingCode() + " for " +
-//                                    booking.getAirline() + " " + booking.getFlightCode() + " added successfuly";
-//                        }else{
-//                            out= "Error on Booking " + booking.getBookingCode() + " for " +
-//                                    booking.getAirline() + " " + booking.getFlightCode() ;
-//                        }
-//
-//                        System.out.println(out);
-//                        latch.countDown();
-//                    }
-//
-//                    @Override
-//                    public void onFailure(Throwable throwable) {
-//                        System.out.println("fallo");
-//                        System.out.println(throwable.getMessage());
-//                        latch.countDown();
-//                    }
-//                }, bookingExecutor);
-//            });
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
         try {
             logger.info("Waiting for response...");
             latch.await();

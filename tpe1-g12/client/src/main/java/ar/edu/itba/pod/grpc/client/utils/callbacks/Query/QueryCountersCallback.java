@@ -53,7 +53,6 @@ public class QueryCountersCallback extends CustomFutureCallback<ListCounterRespo
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(sb);
         getLatch().countDown();
     }
 
