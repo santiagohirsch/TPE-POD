@@ -3,10 +3,13 @@ package ar.edu.itba.pod.grpc.server;
 import ar.edu.itba.pod.grpc.server.exceptions.GlobalExceptionHandlerInterceptor;
 import ar.edu.itba.pod.grpc.server.models.Airport;
 import ar.edu.itba.pod.grpc.server.models.Sector;
+import ar.edu.itba.pod.grpc.server.models.NotificationCenter;
+import ar.edu.itba.pod.grpc.server.models.Sector;
 import ar.edu.itba.pod.grpc.server.servants.AdminServant;
 import ar.edu.itba.pod.grpc.server.servants.PassengerServant;
 import ar.edu.itba.pod.grpc.server.servants.CounterServant;
 import ar.edu.itba.pod.grpc.server.servants.QueryServant;
+import ar.edu.itba.pod.grpc.server.servants.EventServant;
 import io.grpc.BindableService;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptors;
@@ -26,22 +29,14 @@ public class Server {
     public static void main(String[] args) throws InterruptedException, IOException {
         logger.info(" Server Starting ...");
         Airport airport = new Airport();
-//        Sector a = new Sector("A");
-//        Sector b = new Sector("B");
-//
-//        airport.addSector(a);
-//        airport.addSector(b);
-//
-//        airport.addCounters(a, 2);
-//        airport.addCounters(b, 2);
-//        airport.addCounters(a, 2);
-
+        NotificationCenter notificationCenter = new NotificationCenter();
         int port = 50052;
         io.grpc.Server server = ServerBuilder.forPort(port)
-                .addService(handledService.apply(new AdminServant(airport)))
-                .addService(handledService.apply(new PassengerServant(airport)))
-                .addService(handledService.apply(new CounterServant(airport)))
                 .addService(handledService.apply(new QueryServant(airport)))
+                .addService(handledService.apply(new AdminServant(airport, notificationCenter)))
+                .addService(handledService.apply(new EventServant(airport, notificationCenter)))
+                .addServicehandledService.apply((new PassengerServant(airport, notificationCenter)))
+                .addService(handledService.apply(new CounterServant(airport, notificationCenter)))
                 .build();
         server.start();
         logger.info("Server started, listening on " + port);

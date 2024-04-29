@@ -8,6 +8,8 @@ import ar.edu.itba.pod.grpc.server.utils.Pair;
 import org.checkerframework.checker.units.qual.C;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.stream.Collectors;
 
 public class Sector  {
@@ -87,6 +89,8 @@ public class Sector  {
                 }
             }
         }
+
+
 
         // Create the assignment
         Assignment newAssignment = new Assignment(airline, airlineFlights, count);
@@ -173,7 +177,7 @@ public class Sector  {
 
             return toReturn;
         }
-
+        assignedCounters.get(toRemove).get().getFlightCodes().forEach((flight -> flight.setAlreadyCheckedIn(true)));
         while (assignedCounters.containsKey(toRemove) && assignedCounters.get(toRemove).isPresent() && assignedCounters.get(toRemove).get().equals(toReturn.get())){
 
             assignedCounters.replace(toRemove, Optional.empty());
@@ -232,6 +236,86 @@ public class Sector  {
         }
 
         return toReturn;
+    }
+
+    public Map<Assignment, Pair<Integer,Integer>> solvePendingAssignments(){
+        Map<Assignment, Pair<Integer,Integer>> toReturn = Collections.synchronizedMap(new LinkedHashMap<>());
+        for (Assignment assignment : pendingAssignments){
+            Pair<Integer, Integer> interval = assignCountersPending(assignment);
+            if(interval.getLeft()!=0){
+                toReturn.put(assignment, interval);
+            }
+        }
+//        for (Assignment assignment : toReturn.keySet()) {
+//            pendingAssignments.remove(assignment);
+//        }
+        return toReturn;
+    }
+
+    public List<Pair<Assignment,Integer>> removeFromPending(Assignment assignment) {
+        List<Pair<Assignment,Integer>> toReturn = new ArrayList<>();
+        int i = 0;
+        int index=-1;
+        for (Assignment a : pendingAssignments){
+            if(index!=-1){
+                toReturn.add(new Pair<>(a, i - 1));
+            }
+            if(a.equals(assignment)){
+                index=i;
+            }
+            i++;
+        }
+        pendingAssignments.remove(assignment);
+        return toReturn;
+    }
+
+    public Pair<Integer,Integer> assignCountersPending(Assignment newAssignment) {
+        int count = newAssignment.getCant();
+//        String airline, List<Flight> airlineFlights, int count
+        int start = -1;
+        int end = -1;
+        int currentCount = 0;
+
+
+
+        // Search for contiguous counters
+        for (Map.Entry<Integer, Optional<Assignment>> entry : assignedCounters.entrySet()) {
+            if (entry.getValue().isEmpty()) {
+                // Counter is available
+                if (start == -1) {
+                    // Start of a potential block of counters
+                    start = entry.getKey();
+                }
+                if(entry.getKey() != start+currentCount){
+                    start=entry.getKey();
+                    currentCount=0;
+                }
+                currentCount++;
+                if (currentCount == count) {
+                    // Found a block of 'count' consecutive counters
+                    end = entry.getKey();
+                    break;
+                }
+            } else {
+                // Counter is not available, reset currentCount and start
+                start = -1;
+                currentCount = 0;
+            }
+        }
+
+        if (end == -1) {
+            // Unable to find a contiguous block of counters
+            // Add the assignment as pending
+            //pendingAssignments.add(newAssignment);
+            return new Pair<>(0, 0);
+        } else {
+            // Mark the assigned counters for the flight codes
+            // Add the assignment to its assignedCounters
+            for (int i = start; i <= end; i++) {
+                assignedCounters.put(i, Optional.of(newAssignment));
+            }
+            return new Pair<>(start, end);
+        }
     }
 
     @Override

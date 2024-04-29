@@ -6,10 +6,20 @@ import java.util.List;
 public class Airline {
     private final String name;
     private List<Flight> flights;
+    private boolean notificated;
 
     public Airline(String name) {
         this.name = name;
         this.flights = new ArrayList<>();
+        this.notificated = false;
+    }
+
+    public void setNotificated(boolean notificated) {
+        this.notificated = notificated;
+    }
+
+    public boolean isNotificated() {
+        return notificated;
     }
 
     public String getName() {
@@ -33,6 +43,14 @@ public class Airline {
                 break;
             }
         }
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (other == null || getClass() != other.getClass()) return false;
+        Airline airline = (Airline) other;
+        return name.equals(airline.name);
     }
 
 }
